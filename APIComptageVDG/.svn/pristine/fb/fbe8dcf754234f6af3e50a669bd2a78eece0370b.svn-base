@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+https://go.microsoft.com/fwlink/?LinkID=208121.
+-->
+<Project>
+  <PropertyGroup>
+    <DeleteExistingFiles>false</DeleteExistingFiles>
+    <ExcludeApp_Data>false</ExcludeApp_Data>
+    <LaunchSiteAfterPublish>true</LaunchSiteAfterPublish>
+    <LastUsedBuildConfiguration>Release</LastUsedBuildConfiguration>
+    <LastUsedPlatform>Any CPU</LastUsedPlatform>
+    <PublishProvider>FileSystem</PublishProvider>
+    <PublishUrl>bin\Release\net6.0\publish\</PublishUrl>
+    <WebPublishMethod>FileSystem</WebPublishMethod>
+    <_TargetId>Folder</_TargetId>
+    <SiteUrlToLaunchAfterPublish />
+    <TargetFramework>net6.0</TargetFramework>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <ProjectGuid>a1c07c68-6e36-419f-83b6-cb0d8a9b46b4</ProjectGuid>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <PublishReadyToRun>true</PublishReadyToRun>
+  </PropertyGroup>
+</Project>

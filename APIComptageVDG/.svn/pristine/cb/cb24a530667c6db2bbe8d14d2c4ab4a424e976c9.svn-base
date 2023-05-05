@@ -1,0 +1,11 @@
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "url": "http://0.0.0.0:5200",
+  "pathPilotes": "C:\\Users\\HEURTEBIZE\\Desktop\\Projet en cours\\PROJET VB\\AgiZebra.net\\AgiZebraNet\\AgiZebraNet",
+  "AllowedHosts": "*"
+}

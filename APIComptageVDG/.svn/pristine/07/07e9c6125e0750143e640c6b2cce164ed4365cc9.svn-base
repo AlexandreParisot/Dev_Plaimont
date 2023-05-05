@@ -1,0 +1,326 @@
+﻿using AgiApiMonitor.Helpers;
+using AgiApiMonitor.Interfaces;
+using AgiApiMonitor.Models;
+using System.IO;
+using System.Reflection.Metadata.Ecma335;
+using System.Reflection.PortableExecutable;
+
+namespace AgiApiMonitor.ControllerModel
+{
+    public class PiloteControllerModel
+    {
+        private IGestionService gestionService;
+        private List<ServiceMachinesModel> _listeMachines;
+        private string pathSaveMachines = String.Empty;        
+
+        public PiloteControllerModel(IGestionService gestionService,string pathSaveMachines)
+        {
+            this.gestionService = gestionService;
+            if (!string.IsNullOrEmpty(pathSaveMachines))
+                this.pathSaveMachines = pathSaveMachines;
+            else
+                this.pathSaveMachines = Path.Combine(Path.GetDirectoryName(Environment.ProcessPath)!, "ServiceMachines.json");
+
+            _listeMachines = JsonSerialize.DeserializeFromFile<List<ServiceMachinesModel>>(this.pathSaveMachines);
+        }
+
+        public string StatusService { get => gestionService.Status; }
+
+        public int Count { get=> _listeMachines.Count; }
+
+        #region "Methode Public"
+
+        public bool StartService(string machineName)
+        {
+            var machService = getServiceMachines(machineName);
+            if (machService == null)
+                return false;
+
+            return gestionService.StartService(machService.NameService);
+        }
+
+
+        public bool StopService(string machineName)
+        {
+            var machService = getServiceMachines(machineName);
+            if (machService == null)
+                return false;
+
+            return gestionService.StopService(machService.NameService);
+        }
+
+        public bool RestartService(string machineName)
+        {
+            var machService = getServiceMachines(machineName);
+            if (machService == null)
+                return false;
+
+           return gestionService.RestartService(machService.NameService);
+        }
+
+        public bool ExistMachine(string machineName)
+        {
+            try
+            {
+                var machService = getServiceMachines(machineName);
+                if (machService == null)
+                    return false;
+
+                return true;
+            }
+            catch(Exception ex)
+            {
+                Gestion.Erreur($"machineName : {machineName} - {ex.Message}");
+                return false;
+            }
+        }
+
+        public bool RefreshPilotes(string path)
+        {
+            try
+            {
+                if ((!string.IsNullOrEmpty(path) && Directory.Exists(Path.GetDirectoryName(path))))
+                {
+                    refreshListeMachines(path, ref _listeMachines);
+                    JsonSerialize.SerializeToFile(pathSaveMachines, _listeMachines);
+                    return true;
+                }
+                else
+                    return false;
+            }
+            catch(Exception ex)
+            {
+                Gestion.Erreur($"path : {path} - {ex.Message}");
+                return false;
+            }
+        }
+
+
+        public bool AddPilote(string path)
+        {
+            try
+            {
+                if ((!string.IsNullOrEmpty(path) && Directory.Exists(Path.GetDirectoryName(path))))
+                {
+                    var count = _listeMachines.Count();
+                    var retour = AddOnePilote(path, ref _listeMachines);
+                    
+                    if (_listeMachines.Count() > count || retour)
+                    {
+                        JsonSerialize.SerializeToFile(pathSaveMachines, _listeMachines);
+                        return true;
+
+                    }                
+                }
+                return false;
+            }
+            catch(Exception ex) 
+            {
+                Gestion.Erreur($"path : {path} - {ex.Message}");
+                return false;
+            }
+        }
+
+        public string getJsonLastMachine()
+        {
+            return JsonSerialize.Serialize<ServiceMachinesModel>(_listeMachines.Last());
+        }
+
+        public string GetJsonMachines()
+        {
+           return JsonSerialize.Serialize<List<ServiceMachinesModel>>(_listeMachines);
+        }
+
+        #endregion
+
+
+
+        #region "Methode Private"
+
+        private ServiceMachinesModel? getServiceMachines(string machineName)
+        {
+            if (string.IsNullOrEmpty(machineName))
+                return null;
+
+            if (_listeMachines == null)
+                return null;
+
+            return _listeMachines.FirstOrDefault(x => x.GetMachines().ToUpper().Contains(machineName));
+
+        }
+
+
+        private void refreshListeMachines(string pathPilotes, ref List<ServiceMachinesModel> listeMachines)
+        {
+            
+            if (!Directory.Exists(pathPilotes))
+                return;
+
+            try
+            {
+                AddOnePilote(pathPilotes, ref listeMachines);
+
+                foreach (var directory in Directory.GetDirectories(pathPilotes))
+                {
+                    refreshListeMachines(directory, ref listeMachines);
+                }
+            }
+            catch(Exception ex)
+            {
+                Gestion.Erreur($"pathPilotes: {pathPilotes} - {ex.Message}");
+            }
+
+           
+
+        }
+
+
+        private bool AddOnePilote(string path, ref List<ServiceMachinesModel> listeMachines)
+        {
+            if (!Directory.Exists(path))
+                return false;
+
+            try
+            {
+                //Recherche fichier ini
+                var fileIni = getLastFile(path, "*.ini");
+
+                if (fileIni == null)
+                    return false;
+
+                //lecture du fichier pour trouver les machines 
+                var lstMach = getMachinesFromIni(fileIni.FullName);
+
+                //recuperation du fichier du pilote
+
+                var fileExe = getLastFile(path, "*.exe", true);
+
+                if (fileExe == null)
+                    return false;
+                //voir si il a un service associé
+                var NameService = gestionService.GetServiceName(fileExe.FullName);
+                if (string.IsNullOrEmpty(NameService))
+                    return false;
+
+                //creer l'objet ServiceMachines
+
+                var pilote = new ServiceMachinesModel()
+                {
+                    NameService = NameService,
+                    ExecutablePathPilote = fileExe.FullName,
+                    Machines = lstMach
+                };
+
+                // verifie si on a pas deja le pilote dans la liste 
+
+                var piloteExiste = listeMachines.FirstOrDefault((x) => x.NameService == pilote.NameService);
+                // supprime dans la liste si il existe deja.
+                if (piloteExiste != null)
+                    listeMachines.Remove(piloteExiste);
+                // l'ajouter a la liste.
+
+                listeMachines.Add(pilote);
+                return true;
+            }
+            catch(Exception ex)
+            {
+                Gestion.Erreur($"path : {path} - {ex.Message}");
+                return false;
+            }
+            
+        }
+
+        private FileInfo? getLastFile(string pathPilote, string patern, bool searchService = false)
+        {
+            if (!Directory.Exists(pathPilote))
+                return null;
+
+            try
+            {
+                var listFiles = Directory.GetFiles(pathPilote, patern);
+
+                if (listFiles.Count() == 1)
+                {
+                    return new FileInfo(listFiles.First());
+                }
+                else if (listFiles.Any())
+                {
+
+                    FileInfo? lastFile = null;
+                    foreach (var item in listFiles)
+                    {
+                        var fileInfo = new FileInfo(item);
+
+                        if (searchService)
+                        {
+                            if (!string.IsNullOrEmpty(gestionService.GetServiceName(fileInfo.FullName)))
+                            {
+                                return fileInfo;
+                            }
+                        }
+
+                        if (lastFile == null)
+                        {
+                            lastFile = fileInfo;
+                        }
+                        else if (fileInfo.LastWriteTime > lastFile.LastWriteTime)
+                        {
+                            lastFile = fileInfo;
+                        }
+                    }
+
+                    return lastFile;
+                }
+
+                return null;
+            }
+            catch(Exception ex)
+            {
+                Gestion.Erreur($"Path : {pathPilote} - patern : {patern} - searchService : {searchService}  - {ex.Message}");
+                return null;
+            }
+
+            
+        }
+
+
+        private List<string> getMachinesFromIni(string file)
+        {
+            if (string.IsNullOrEmpty(file))
+                return new List<string>();
+
+            try
+            {
+                var mach = string.Empty;
+
+                var lignes = System.IO.File.ReadAllText(file);
+
+                foreach (var line in lignes.Split(Environment.NewLine))
+                {
+                    var ligne = line.Trim();
+                    if (ligne.ToUpper().Contains("MACHINE="))
+                    {
+                        mach = ligne.Split("=").ToArray()[1];
+                        break;
+                    }
+                }
+
+                if (mach.Contains("]"))
+                {
+                    mach = mach.Split("]").ToArray()[0];
+                }
+                mach = mach.Trim();
+                return mach.Split(",").ToList();
+
+            }
+            catch(Exception ex)
+            {
+                Gestion.Erreur($"file:{file} - {ex.Message}");
+                return new List<string>();
+            }            
+        }
+        #endregion
+
+
+    }
+}

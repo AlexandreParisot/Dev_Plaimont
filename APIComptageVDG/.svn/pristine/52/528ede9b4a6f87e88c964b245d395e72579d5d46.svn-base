@@ -1,0 +1,74 @@
+﻿using System.Text.Json;
+using System.Xml;
+
+namespace AgiApiMonitor.Helpers
+{
+   
+    public static class JsonSerialize
+    {
+
+        public static void SerializeToFile<T>(string filePath, T data)
+        {
+            try
+            {
+                string jsonString = JsonSerializer.Serialize(data, new JsonSerializerOptions
+                {
+                    WriteIndented = true
+                });
+                File.WriteAllText(filePath, jsonString);
+            }catch(Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+           
+        }
+
+        public static string Serialize<T>(T data)
+        {
+            try
+            {
+                return JsonSerializer.Serialize(data, new JsonSerializerOptions
+                {
+                    WriteIndented = true
+                });
+               
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                return string.Empty;
+            }
+        }
+
+        public static T DeserializeFromFile<T>(string filePath)
+        {
+            try
+            {
+                string jsonString = File.ReadAllText(filePath);
+                return JsonSerializer.Deserialize<T>(jsonString);
+            }catch
+            {
+                Type type = typeof(T);
+                object instance = Activator.CreateInstance(type);
+                return (T)instance;
+
+            }
+
+        }
+
+        public static T Deserialize<T>(string jsonString)
+        {
+            try
+            {
+                return JsonSerializer.Deserialize<T>(jsonString);
+            }
+            catch
+            {
+                Type type = typeof(T);
+                object instance = Activator.CreateInstance(type);
+                return (T)instance;
+
+            }
+        }
+    }
+}
