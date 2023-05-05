@@ -17,9 +17,9 @@ namespace ComptageVDG.Models
         
         public int Year { get; set; }
        
-        public DateTime DateDebut { get; set; }
+        public DateTime? DateDebut { get; set; }
         
-        public DateTime DateFin { get; set; }
+        public DateTime? DateFin { get; set; }
 
     }
 }

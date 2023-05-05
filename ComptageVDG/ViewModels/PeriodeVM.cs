@@ -190,6 +190,12 @@ namespace ComptageVDG.ViewModels
                     });                    
                 }
             }
+
+            if(e.Sender == "SYNCHRO")
+            {
+               SynchroPeriodeInstaGrappeCommandExecute(String.Empty);
+            }
+
         }
 
         private bool SynchroPeriodeInstaGrappeCommandCanExecute(string obj)
@@ -210,7 +216,13 @@ namespace ComptageVDG.ViewModels
 
         private async void SynchroPeriodeInstaGrappeCommandExecute(string obj)
         {
-            ShowLoading($"Mise à jour période campagne {Year} pour les {obj.ToLower()} .");
+            if (isDirty)
+            {
+                WarningNotif("Une modification est en cours vous devez enregistrer ou actualiser pour annuler les modification afin de lancer une synchro instagrappe.");
+                return;
+            }
+
+            ShowLoading($"Mise à jour période campagne {Year}{(!string.IsNullOrEmpty(obj)? $" pour les {obj.ToLower()}" : "")}.");
             //il faut la liste de parcelle autorisé + la periode
             //await ServiceCampagne.OpenParcelle(null).with;
             await Task.Delay(TimeSpan.FromSeconds(3));
@@ -241,8 +253,20 @@ namespace ComptageVDG.ViewModels
                             isDirty = true;
                         }
                     }
+                    else if( DatedebGlomerule == null || DatefinGlomerule == null)
+                    {
+                        var glome = PeriodeModels.FirstOrDefault((x) => x.Name.ToLower() == Glomerule.ToLower());
+                        if(glome != null)
+                        {
+                            glome.DateDebut = DatedebGlomerule;
+                            glome.DateFin = DatefinGlomerule;
+                            isDirty = true;
+                        }
+                            
+                    }
                     else
                         message += "La déclaration de période pour le comptage des glomérules n'est pas conforme." + Environment.NewLine;
+
 
 
                     if (DatedebPerforation != null && DatefinPerforation != null)
@@ -258,6 +282,17 @@ namespace ComptageVDG.ViewModels
                             perfo!.DateFin = DatefinPerforation.Value;
                             isDirty = true;
                         }
+                    }
+                    else if (DatedebPerforation == null || DatefinPerforation == null)
+                    {
+                        var perfo = PeriodeModels.FirstOrDefault((x) => x.Name.ToLower() == Perforation.ToLower());
+                        if (perfo != null)
+                        {
+                            perfo.DateDebut = DatedebPerforation;
+                            perfo.DateFin = DatefinPerforation;
+                            isDirty = true;
+                        }
+
                     }
                     else
                         message += "La déclaration de période pour le premier comptage des perforations n'est pas conforme." + Environment.NewLine;
@@ -278,6 +313,17 @@ namespace ComptageVDG.ViewModels
                         }
                             
                     }
+                    else if (DatedebPerforation2 == null || DatefinPerforation2 == null)
+                    {
+                        var perfo2 = PeriodeModels.FirstOrDefault((x) => x.Name.ToLower() == Perforation2.ToLower());
+                        if (perfo2 != null)
+                        {
+                            perfo2.DateDebut = DatedebPerforation2;
+                            perfo2.DateFin = DatefinPerforation2;
+                            isDirty = true;
+                        }
+
+                    }
                     else
                         message += "La déclaration de période pour le deuxiéme comptage des perforations n'est pas conforme." + Environment.NewLine;
                     
@@ -288,24 +334,24 @@ namespace ComptageVDG.ViewModels
                     PeriodeModel? Glome = null;
                     PeriodeModel? Perfo = null;
                     PeriodeModel? Perfo2 = null;
-                    if (DatedebGlomerule != null && DatefinGlomerule != null && DatedebGlomerule < DatefinGlomerule)
+                    if ((DatedebGlomerule == null && DatefinGlomerule == null) ||( DatedebGlomerule != null && DatefinGlomerule != null && DatedebGlomerule < DatefinGlomerule))
                     {
-                        Glome = new PeriodeModel() { DateDebut = DatedebGlomerule.Value!, DateFin = DatefinGlomerule.Value!, Name = Glomerule, Year = int.Parse(this.Year) };
+                        Glome = new PeriodeModel() { DateDebut = DatedebGlomerule, DateFin = DatefinGlomerule, Name = Glomerule, Year = int.Parse(this.Year) };
                         PeriodeModels!.Add(Glome);
                         isDirty = true; 
                     } else
                         message += "La déclaration de période pour le comptage des glomérules n'est pas conforme." + Environment.NewLine;
-                    if(DatedebPerforation != null && DatefinPerforation != null)
+                    if((DatedebPerforation == null && DatefinPerforation == null) || (DatedebPerforation != null && DatefinPerforation != null))
                     {
-                        Perfo = new PeriodeModel() { Year = int.Parse(this.Year), DateDebut = DatedebPerforation.Value, DateFin=DatefinPerforation.Value, Name = Perforation };
+                        Perfo = new PeriodeModel() { Year = int.Parse(this.Year), DateDebut = DatedebPerforation, DateFin=DatefinPerforation, Name = Perforation };
                         PeriodeModels!.Add(Perfo);
                         isDirty = true;
                     }
                     else
                         message += "La déclaration de période pour le premier comptage des perforations n'est pas conforme." + Environment.NewLine;
-                    if (DatedebPerforation2 != null && DatefinPerforation2 != null)
+                    if ((DatedebPerforation2 == null && DatefinPerforation2 == null)||(DatedebPerforation2 != null && DatefinPerforation2 != null))
                     {
-                        Perfo2 = new PeriodeModel() { Name = Perforation2, DateDebut=DatedebPerforation2.Value, DateFin=DatefinPerforation2.Value, Year=int.Parse(Year) };
+                        Perfo2 = new PeriodeModel() { Name = Perforation2, DateDebut=DatedebPerforation2, DateFin=DatefinPerforation2, Year=int.Parse(Year) };
                         PeriodeModels!.Add(Perfo2);
                         isDirty = true;
                     }
@@ -318,34 +364,27 @@ namespace ComptageVDG.ViewModels
                     var success = await ServiceCampagne.asyncSetPeriodeCampagne(PeriodeModels, Year);
                     if (!success)
                     {
-                        message = "Une erreure s'est produite lors de la sauvegarde.";
-                        //TODO Notification
+                        message = "Une erreure s'est produite lors de la sauvegarde.";                       
                         PeriodeModels = new ObservableCollection<PeriodeModel>();
                         ErrorNotif(message);
-                        //MessageBox.Show(message,"Vers de grappe",MessageBoxButton.OK,MessageBoxImage.Error);
                     }
                     else
                     {
                         isDirty = false;
                         if (PeriodeModels!.First().Id_periode == 0)
-                        {
-                            
+                        {                            
                             if (!ListeCampagne.ContainsKey(Year))
                             {
                                 ListeCampagne.Add(Year, $"Campagne {Year}");
                                 DateCampagne = Year;
                             }
-
                         }
-
                         InfoNotif($"Sauvegarde période {Year} effectuée.");
                     }
                 }
                 else
                 {
-                    //TODO Notification
                     WarningNotif(message);  
-                    //MessageBox.Show(message,"Vers de grappe",MessageBoxButton.OK,MessageBoxImage.Warning);
                 }
                 SynchroPeriodeInstaGrappeCommand.RaiseCanExecuteChanged();
             }

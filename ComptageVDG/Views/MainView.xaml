@@ -14,8 +14,9 @@
     Title="Comptage vers de grappes"
     d:DesignHeight="900"
     d:DesignWidth="1200"
+    Closing="Window_Closing"
     Icon="/Views/icons8-piccollage-64.ico"
-    mc:Ignorable="d" Closing="Window_Closing">
+    mc:Ignorable="d">
 
     <Window.Resources>
         <ResourceDictionary>
@@ -88,15 +89,15 @@
             Grid.RowSpan="2"
             Grid.ColumnSpan="2"
             Panel.ZIndex="9999" />
-        
+
         <uc:NotificationView
             x:Name="Notification"
             Grid.Row="1"
             Grid.ColumnSpan="2"
-            Panel.ZIndex="9998" 
+            HorizontalAlignment="Left"
             VerticalAlignment="Bottom"
-            HorizontalAlignment="Left"/>
-            
+            Panel.ZIndex="9998" />
+
 
         <ig:XamMenu
             x:Name="MainMenu"
@@ -119,13 +120,18 @@
                         <Image Source="{Binding Source='/Views/Images/icons8-grapes-64.png'}" />
                     </ig:XamMenuItem.Icon>
                 </ig:XamMenuItem>
+                <ig:XamMenuItem Command="{Binding SynchroInstagrappeCommand}" Header="Synchro Instagrappe">
+                    <ig:XamMenuItem.Icon>
+                        <Image Source="{Binding Source='/Views/Images/icons8-cloud-sync-64.png'}" />
+                    </ig:XamMenuItem.Icon>
+                </ig:XamMenuItem>
             </ig:XamMenuItem>
         </ig:XamMenu>
 
         <Grid
             x:Name="LayoutRoot"
             Grid.Row="1"
-            Grid.ColumnSpan="2">           
+            Grid.ColumnSpan="2">
 
             <!--<ContentControl
                 x:Name="CAMPAGNE"

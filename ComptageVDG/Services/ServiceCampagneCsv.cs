@@ -95,8 +95,8 @@ namespace ComptageVDG.Services
                 
                 dr.SetField("year", periode.Year);
                 dr.SetField("name",periode.Name);
-                dr.SetField("datedeb",periode.DateDebut.ToString("dd/MM/yyyy"));
-                dr.SetField("datefin",periode.DateFin.ToString("dd/MM/yyyy")) ;
+                dr.SetField("datedeb",periode.DateDebut?.ToString("dd/MM/yyyy"));
+                dr.SetField("datefin",periode.DateFin?.ToString("dd/MM/yyyy")) ;
                 Dt.Rows.Add(dr);    
             }
            var result = connexionService.Instance.ExecuteNoQuery($"Periode{DateCampagne}.csv", new object[] { Dt, typeof(DataTable).FullName}); //
