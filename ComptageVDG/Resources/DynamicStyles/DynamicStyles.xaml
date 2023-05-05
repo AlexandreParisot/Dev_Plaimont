@@ -1,0 +1,134 @@
+﻿
+
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:models="clr-namespace:ComptageVDG.Models">
+
+
+    <!--  Debut Bouton Corner Radius  -->
+    <Style x:Key="RoundCorner" TargetType="{x:Type Button}">
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Padding" Value="1" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Grid x:Name="grid">
+                        <Border
+                            x:Name="border"
+                            BorderBrush="Gray"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Opacity="0.5">
+                            <Border.Background>
+                                <RadialGradientBrush GradientOrigin="0.496,1.052">
+                                    <RadialGradientBrush.RelativeTransform>
+                                        <TransformGroup>
+                                            <ScaleTransform CenterX="0.5" CenterY="0.5" ScaleX="1.5" ScaleY="1.5" />
+                                            <TranslateTransform X="0.02" Y="0.3" />
+                                        </TransformGroup>
+                                    </RadialGradientBrush.RelativeTransform>
+                                    <GradientStop Offset="1" Color="#00000000" />
+                                    <GradientStop Offset="0.3" Color="#FFFFFFFF" />
+                                </RadialGradientBrush>
+                            </Border.Background>
+                            <ContentPresenter
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                TextElement.FontWeight="Bold" />
+                        </Border>
+
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="border" Property="Background">
+                                <Setter.Value>
+                                    <RadialGradientBrush GradientOrigin="0.496,1.052">
+                                        <RadialGradientBrush.RelativeTransform>
+                                            <TransformGroup>
+                                                <ScaleTransform CenterX="0.5" CenterY="0.5" ScaleX="1.5" ScaleY="1.5" />
+                                                <TranslateTransform X="0.02" Y="0.3" />
+                                            </TransformGroup>
+                                        </RadialGradientBrush.RelativeTransform>
+                                        <GradientStop Offset="1" Color="#00000000" />
+                                        <GradientStop Offset="0.3" Color="#FF303030" />
+                                    </RadialGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="border" Property="BorderBrush" Value="#FF33962B" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="grid" Property="Opacity" Value="0.25" />
+                        </Trigger>
+
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <!--  Fin Bouton Radius  -->
+
+    <!--  Engrenage  -->
+    <Style x:Key="Engrenage" TargetType="Image">
+        <Setter Property="Height" Value="64" />
+        <Setter Property="Image.RenderTransform">
+            <Setter.Value>
+                <RotateTransform CenterX="32" CenterY="32" />
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsEnabled" Value="True">
+                <Trigger.EnterActions>
+                    <BeginStoryboard x:Name="RotateAnimation">
+                        <Storyboard>
+                            <DoubleAnimation
+                                RepeatBehavior="Forever"
+                                Storyboard.TargetProperty="RenderTransform.Angle"
+                                From="0"
+                                To="360"
+                                Duration="0:0:5" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.EnterActions>
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Trigger.EnterActions>
+                    <StopStoryboard BeginStoryboardName="RotateAnimation" />
+                </Trigger.EnterActions>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+    <!--  Fin Engrenage  -->
+    <!--  Notification  -->
+    <DataTemplate DataType="{x:Type models:Notification}">
+        <Grid
+            x:Name="TemplateRoot"
+            MinWidth="300"
+            Margin="5"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Stretch">
+            <Border
+                x:Name="BkgElt"
+                Background="{Binding BgColor, FallbackValue='#CFE2FF', TargetNullValue='#CFE2FF'}"
+                BorderBrush="{Binding FtColor, FallbackValue='#0842A5', TargetNullValue='#0842A5'}"
+                BorderThickness="1"
+                CornerRadius="6"
+                Opacity="0.65" />
+            <Grid x:Name="ItemLayout" Margin="5,0,5,3">
+                <TextBlock
+                    x:Name="MessageTB"
+                    Margin="3"
+                    VerticalAlignment="Center"
+                    FontSize="20"
+                    FontWeight="DemiBold"
+                    Foreground="{Binding FtColor, FallbackValue='#0842A5', TargetNullValue='#0842A5'}"
+                    Text="{Binding Message}"
+                    TextWrapping="Wrap" />
+            </Grid>
+        </Grid>
+    </DataTemplate>
+    <!--  Fin Notification  -->
+</ResourceDictionary>

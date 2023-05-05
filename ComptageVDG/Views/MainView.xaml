@@ -1,0 +1,149 @@
+﻿<Window
+    x:Class="ComptageVDG.Views.MainView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converter="clr-namespace:ComptageVDG.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:ig="http://schemas.infragistics.com/xaml"
+    xmlns:igDP="http://infragistics.com/DataPresenter"
+    xmlns:igEditors="http://infragistics.com/Editors"
+    xmlns:local="clr-namespace:ComptageVDG.Views"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:uc="clr-namespace:ComptageVDG.Views"
+    xmlns:viewmodels="clr-namespace:ComptageVDG.ViewModels"
+    Title="Comptage vers de grappes"
+    d:DesignHeight="900"
+    d:DesignWidth="1200"
+    Icon="/Views/icons8-piccollage-64.ico"
+    mc:Ignorable="d" Closing="Window_Closing">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/Resources/DynamicStyles/DynamicStyles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <converter:DebugConverter x:Key="DebugConverter" />
+            <converter:VisibilityConverter x:Key="VisibilityConverter" />
+
+            <DataTemplate x:Key="LoadingView">
+                <uc:LoadingView x:Name="LoadingView" />
+            </DataTemplate>
+            <!--<DataTemplate x:Key="CampagneView">
+                <uc:CampagneView x:Name="CampagneView" />
+            </DataTemplate>
+
+            <DataTemplate x:Key="ParcelleView">
+                <uc:ParcelleView x:Name="ParcelleView" />
+            </DataTemplate>
+
+            <DataTemplate x:Key="PeriodeView">
+                <uc:PeriodeView x:Name="PeriodeView" />
+            </DataTemplate>-->
+
+
+            <!--<x:Array x:Key="YearsArray" Type="sys:String"
+            xmlns:sys="clr-namespace:System;assembly=mscorlib">
+                <sys:String>2023</sys:String>
+                <sys:String>2022</sys:String>
+            </x:Array>-->
+
+            <!--<XmlDataProvider x:Key="PrioritiesYearsXml">
+                    <x:XData>
+                        <priorities xmlns="">
+                            <priority text="Campagne 2023" id="2023" />
+                            <priority text="Campagne 2022" id="2021" />
+                            <priority text="Campagne 2021" id="2021" />
+                        </priorities>
+                    </x:XData>
+                </XmlDataProvider>-->
+            <!--<ctrl:ObjectCollection x:Key="Yerslist">
+                <sys:String>2023</sys:String>
+                <sys:String>2022</sys:String>
+                <sys:String>2021</sys:String>
+            </ctrl:ObjectCollection>-->
+
+        </ResourceDictionary>
+    </Window.Resources>
+    <Window.DataContext>
+        <viewmodels:MainVm />
+    </Window.DataContext>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="43*" />
+            <ColumnDefinition Width="157*" />
+        </Grid.ColumnDefinitions>
+        <ig:ThemeManager.Theme>
+            <ig:MetroTheme />
+        </ig:ThemeManager.Theme>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <uc:LoadingView
+            x:Name="Loading"
+            Grid.Row="0"
+            Grid.RowSpan="2"
+            Grid.ColumnSpan="2"
+            Panel.ZIndex="9999" />
+        
+        <uc:NotificationView
+            x:Name="Notification"
+            Grid.Row="1"
+            Grid.ColumnSpan="2"
+            Panel.ZIndex="9998" 
+            VerticalAlignment="Bottom"
+            HorizontalAlignment="Left"/>
+            
+
+        <ig:XamMenu
+            x:Name="MainMenu"
+            Grid.ColumnSpan="2"
+            VerticalAlignment="Center"
+            MenuOrientation="Horizontal">
+            <ig:XamMenuItem Header="Fichier">
+                <ig:XamMenuItem Command="{Binding OpenDialogConnexionCommand}" Header="Paramétres">
+                    <ig:XamMenuItem.Icon>
+                        <Image Source="{Binding Source='/Views/Images/icons8-settings-64.png'}" />
+                    </ig:XamMenuItem.Icon>
+                </ig:XamMenuItem>
+                <ig:XamMenuItem Command="{Binding PeriodeCommand}" Header="Période Campagne">
+                    <ig:XamMenuItem.Icon>
+                        <Image Source="{Binding Source='/Views/Images/icons8-clock-64.png'}" />
+                    </ig:XamMenuItem.Icon>
+                </ig:XamMenuItem>
+                <ig:XamMenuItem Command="{Binding DeclarationCommand}" Header="Déclaration Campagne">
+                    <ig:XamMenuItem.Icon>
+                        <Image Source="{Binding Source='/Views/Images/icons8-grapes-64.png'}" />
+                    </ig:XamMenuItem.Icon>
+                </ig:XamMenuItem>
+            </ig:XamMenuItem>
+        </ig:XamMenu>
+
+        <Grid
+            x:Name="LayoutRoot"
+            Grid.Row="1"
+            Grid.ColumnSpan="2">           
+
+            <!--<ContentControl
+                x:Name="CAMPAGNE"
+                Content="{Binding CampagneVM, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                ContentTemplate="{StaticResource ResourceKey=CampagneView}"
+                Visibility="{Binding isCampagne, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=false, TargetNullValue=false, Converter={StaticResource VisibilityConverter}}" />
+            <ContentControl
+                x:Name="PERIODE"
+                Content="{Binding PeriodeVM, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                ContentTemplate="{StaticResource ResourceKey=PeriodeView}"
+                Visibility="{Binding isPeriode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=false, TargetNullValue=false, Converter={StaticResource VisibilityConverter}}" />
+            <ContentControl
+                x:Name="PARCELLE"
+                Content="{Binding ParcelleVM, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                ContentTemplate="{StaticResource ResourceKey=ParcelleView}"
+                Visibility="{Binding isParcelle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=false, TargetNullValue=false, Converter={StaticResource VisibilityConverter}}" />-->
+        </Grid>
+
+    </Grid>
+
+</Window>

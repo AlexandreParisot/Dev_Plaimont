@@ -1,0 +1,135 @@
+﻿<UserControl
+    x:Class="ComptageVDG.Views.CampagneView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converter="clr-namespace:ComptageVDG.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:ig="http://schemas.infragistics.com/xaml"
+    xmlns:igDP="http://infragistics.com/DataPresenter"
+    xmlns:igEditors="http://infragistics.com/Editors"
+    xmlns:local="clr-namespace:ComptageVDG.Views"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:viewmodel="clr-namespace:ComptageVDG.ViewModels"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    Background="White"
+    Unloaded="UserControl_Unloaded"
+    mc:Ignorable="d">
+    <UserControl.DataContext>
+        <viewmodel:CampagneVM />
+    </UserControl.DataContext>
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/Resources/DynamicStyles/DynamicStyles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <viewmodel:CampagneVM x:Key="viewModel" />
+            <converter:DebugConverter x:Key="DebugConverter" />
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <Grid x:Name="LayoutRoot">
+
+        <Grid x:Name="LayoutCampagne">
+            <ig:ThemeManager.Theme>
+                <ig:MetroTheme />
+            </ig:ThemeManager.Theme>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <Grid Grid.Row="0">
+                <Grid
+                    Panel.ZIndex="0"
+                    Background="Gray"
+                    Opacity="0.1" />
+                <StackPanel
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Top"
+                    Panel.ZIndex="99"
+                    Orientation="Horizontal">
+                    <Button
+                        x:Name="BT2"
+                        Margin="3"
+                        Command="{Binding RefreshCommand}">
+                        <StackPanel Margin="3" Orientation="Horizontal">
+                            <Image
+                                Width="20"
+                                VerticalAlignment="Center"
+                                Source="/Views/Images/icons8-cloud-sync-64.png" />
+                            <TextBlock
+                                Margin="3"
+                                VerticalAlignment="Center"
+                                Text="Rafraîchir"
+                                TextAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+                <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                    <igEditors:XamComboEditor
+                        x:Name="DATECPG"
+                        Margin="3"
+                        DisplayMemberPath="Value"
+                        ItemsSource="{Binding ListeCampagne, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource DebugConverter}}"
+                        ValuePath="Key"
+                        Value="{Binding DateCampagne, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource DebugConverter}}" />
+                </StackPanel>
+            </Grid>
+            <Grid Grid.Row="1">
+                <igDP:XamDataGrid
+                    Name="xamDataGridCampagne"
+                    AutoFit="True"
+                    DataSource="{Binding ParcelleModels}">
+                    <igDP:XamDataGrid.Resources>
+                        <Style TargetType="{x:Type igEditors:XamNumericEditor}">
+                            <Setter Property="Foreground" Value="#000" />
+                        </Style>
+                    </igDP:XamDataGrid.Resources>
+
+                    <igDP:XamDataGrid.FieldSettings>
+                        <igDP:FieldSettings AllowEdit="False" />
+                    </igDP:XamDataGrid.FieldSettings>
+
+                    <!--<igDP:XamDataGrid.FieldLayouts>
+
+                        <igDP:FieldLayout>
+                    -->
+                    <!--<igDP:FieldLayout.Settings>
+                                <igDP:FieldLayoutSettings AutoArrangeCells="Never" AutoGenerateFields="False" />
+                            </igDP:FieldLayout.Settings>-->
+                    <!--
+                            <igDP:FieldLayout.Fields>
+                                <igDP:CheckBoxField
+                                    Name="inParcelle"
+                                    Label=""
+                                    Visibility="Hidden" />
+                                <igDP:NumericField Name="id_parcelle" Label="Id UT" />
+                                <igDP:NumericField Name="ut" Label="UT" />
+                                <igDP:TextField Name="nameParcelle" Label="Désignation" />
+                                <igDP:TextField Name="nameParcelle2" Label="Désignation 2" />
+                                <igDP:NumericField Name="surface" Label="Surface" />
+                                <igDP:NumericField Name="qualite" Label="Qualite" />
+                                <igDP:NumericField Name="cptGlomerule" Label="Glomérule" />
+                                <igDP:NumericField Name="cptPerforation1" Label="Perforation" />
+                                <igDP:NumericField Name="cptPerforation1" Label="Perforation 2" />
+                    -->
+                    <!--<igDP:Field.Settings>
+                                <igDP:FieldSettings>
+                                    <igDP:FieldSettings.EditorStyle>
+                                        <Style TargetType="{x:Type igEditors:XamTextEditor}">
+                                            <Setter Property="TextWrapping"
+                                                    Value="Wrap" />
+                                        </Style>
+                                    </igDP:FieldSettings.EditorStyle>
+                                </igDP:FieldSettings>
+                            </igDP:Field.Settings>-->
+                    <!--
+
+
+                            </igDP:FieldLayout.Fields>
+                        </igDP:FieldLayout>
+                    </igDP:XamDataGrid.FieldLayouts>-->
+                </igDP:XamDataGrid>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

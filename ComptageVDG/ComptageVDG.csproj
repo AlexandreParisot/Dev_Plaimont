@@ -1,0 +1,77 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <ApplicationIcon>Views\Images\icons8-piccollage-64.ico</ApplicationIcon>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Remove="Views\icons8-clock-64.png" />
+    <None Remove="Views\icons8-cloud-backup-restore-64.png" />
+    <None Remove="Views\icons8-cloud-connection-64.png" />
+    <None Remove="Views\icons8-cloud-sync-64.png" />
+    <None Remove="Views\icons8-grapes-64.png" />
+    <None Remove="Views\icons8-piccollage-64.ico" />
+    <None Remove="Views\icons8-piccollage-64.png" />
+    <None Remove="Views\icons8-save-64.png" />
+    <None Remove="Views\icons8-settings-64.png" />
+    <None Remove="Views\icons8-undo-64.png" />
+    <None Remove="Views\Images\icons8-add-to-cloud-64.png" />
+    <None Remove="Views\loading-icon-product.png" />
+    <None Remove="Views\Plaimont.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Images\icons8-piccollage-64.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="CsvHelper" Version="30.0.1" />
+    <PackageReference Include="Infragistics.WPF" Version="22.2.47" />
+    <PackageReference Include="Infragistics.WPF.DataGrids" Version="22.2.47" />
+    <PackageReference Include="Infragistics.WPF.Editors" Version="22.2.47" />
+    <PackageReference Include="Infragistics.WPF.Menus" Version="22.2.47" />
+    <PackageReference Include="Infragistics.WPF.Themes.Metro" Version="22.2.47" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Views\Images\paramètres-30.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Views\icons8-piccollage-64.ico" />
+    <Resource Include="Views\Images\icons8-add-to-cloud-64.png" />
+    <Resource Include="Views\Images\icons8-clock-64.png" />
+    <Resource Include="Views\Images\icons8-cloud-backup-restore-64.png" />
+    <Resource Include="Views\Images\icons8-cloud-connection-64.png" />
+    <Resource Include="Views\Images\icons8-cloud-sync-64.png" />
+    <Resource Include="Views\Images\icons8-grapes-64.png" />
+    <Resource Include="Views\Images\icons8-piccollage-64.png" />
+    <Resource Include="Views\Images\icons8-save-64.png" />
+    <Resource Include="Views\Images\icons8-settings-64.png" />
+    <Resource Include="Views\Images\icons8-undo-64.png" />
+    <Resource Include="Views\Images\loading-icon-product.png" />
+    <Resource Include="Views\Images\Plaimont.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Properties\Settings.Designer.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+</Project>

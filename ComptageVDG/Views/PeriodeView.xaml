@@ -1,0 +1,391 @@
+﻿<UserControl
+    x:Class="ComptageVDG.Views.PeriodeView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converter="clr-namespace:ComptageVDG.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:ig="http://schemas.infragistics.com/xaml"
+    xmlns:igDP="http://infragistics.com/DataPresenter"
+    xmlns:igEditors="http://infragistics.com/Editors"
+    xmlns:local="clr-namespace:ComptageVDG.Views"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:viewmodel="clr-namespace:ComptageVDG.ViewModels"
+    d:DesignHeight="450"
+    Background="White"
+    Unloaded="UserControl_Unloaded"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/Resources/DynamicStyles/DynamicStyles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <viewmodel:PeriodeVM x:Key="viewModel" />
+            <converter:DebugConverter x:Key="DebugConverter" />
+            <converter:ComboDictionary x:Key="ComboYears" />
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <UserControl.DataContext>
+        <viewmodel:PeriodeVM />
+    </UserControl.DataContext>
+    <Grid x:Name="LayoutCampagne">
+        <ig:ThemeManager.Theme>
+            <ig:MetroTheme />
+        </ig:ThemeManager.Theme>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0">
+            <Grid
+                Panel.ZIndex="0"
+                Background="Gray"
+                Opacity="0.1" />
+            <StackPanel
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top"
+                Panel.ZIndex="99"
+                Orientation="Horizontal">
+                <Button
+                    x:Name="BT_SAVE"
+                    Margin="3"
+                    Command="{Binding SaveCommand}">
+                    <StackPanel Margin="3" Orientation="Horizontal">
+                        <Image
+                            Width="20"
+                            VerticalAlignment="Center"
+                            Source="/Views/Images/icons8-save-64.png" />
+                        <TextBlock
+                            Margin="3"
+                            VerticalAlignment="Center"
+                            Text="Enregistrer"
+                            TextAlignment="Center" />
+                    </StackPanel>
+                </Button>
+                <Button
+                    x:Name="BT_REFRESH"
+                    Margin="3"
+                    Command="{Binding RefreshCommand}">
+                    <StackPanel Margin="3" Orientation="Horizontal">
+                        <Image
+                            Width="20"
+                            VerticalAlignment="Center"
+                            Source="/Views/Images/icons8-cloud-sync-64.png" />
+                        <TextBlock
+                            Margin="3"
+                            VerticalAlignment="Center"
+                            Text="Actualiser"
+                            TextAlignment="Center" />
+                    </StackPanel>
+                </Button>
+                <Button
+                    x:Name="BT_AJOUT"
+                    Margin="3"
+                    Command="{Binding AjoutCommand}">
+                    <StackPanel Margin="3" Orientation="Horizontal">
+                        <Image
+                            Width="20"
+                            VerticalAlignment="Center"
+                            Source="/Views/Images/icons8-add-to-cloud-64.png" />
+                        <TextBlock
+                            Margin="3"
+                            VerticalAlignment="Center"
+                            Text="Créer période"
+                            TextAlignment="Center" />
+                    </StackPanel>
+                </Button>
+                <Button
+                    x:Name="BT_RETOUR"
+                    Margin="3"
+                    Command="{Binding RetourCommand}">
+                    <StackPanel Margin="3" Orientation="Horizontal">
+                        <Image
+                            Width="20"
+                            VerticalAlignment="Center"
+                            Source="pack://application:,,,/Views/Images/icons8-undo-64.png" />
+                        <TextBlock
+                            Margin="3"
+                            VerticalAlignment="Center"
+                            Text="Retour"
+                            TextAlignment="Center" />
+                    </StackPanel>
+                </Button>
+                <!--<TextBlock x:Name="SERVEURNAME" Text="{Binding ServeurName}" FontWeight="Bold" VerticalAlignment="Center" Margin="5" />-->
+            </StackPanel>
+            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                <igEditors:XamComboEditor
+                    x:Name="DATECPG"
+                    Margin="3"
+                    DisplayMemberPath="Value"
+                    ItemsSource="{Binding ListeCampagne, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    ValuePath="Key"
+                    Value="{Binding DateCampagne, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+        </Grid>
+        <Grid Grid.Row="1">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto" />
+                    <ColumnDefinition Width="auto" />
+                    <ColumnDefinition Width="auto" />
+                    <ColumnDefinition Width="auto" />
+                    <ColumnDefinition Width="auto" />
+                    <ColumnDefinition Width="auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel
+                    Grid.Row="0"
+                    Grid.ColumnSpan="6"
+                    Orientation="Horizontal">
+                    <Label Content="Gestion de la période de campagne pour : " />
+                    <Label Content="{Binding Year, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, TargetNullValue=pas spécifié, FallbackValue=pas spécifié}" />
+                </StackPanel>
+                <Label
+                    Grid.Row="1"
+                    Grid.Column="0"
+                    Content="Nombre de glomérules du : " />
+                <Label
+                    Grid.Row="2"
+                    Grid.Column="0"
+                    Content="Nombre de perforation premiére passe du : " />
+                <Label
+                    Grid.Row="3"
+                    Grid.Column="0"
+                    Content="Nombre de perforation seconde passe du : " />
+
+                <igEditors:XamDateTimeEditor
+                    x:Name="glomeDateDeb"
+                    Grid.Row="1"
+                    Grid.Column="1"
+                    MinWidth="200"
+                    Margin="3"
+                    DisplayMode="IncludeBoth"
+                    IsAlwaysInEditMode="True"
+                    IsReadOnly="{Binding IsReadGlomerule, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=true, TargetNullValue=true}"
+                    Mask="{Binding ElementName=masksComboBox, Path=SelectedItem.Tag, Mode=OneWay}"
+                    Value="{Binding DatedebGlomerule}">
+                    <igEditors:XamDateTimeEditor.Resources>
+                        <Style TargetType="{x:Type igEditors:XamMonthCalendar}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding RelativeSource={x:Static RelativeSource.Self}, Path=Dispatcher.Thread.CurrentUICulture.Name}" Value="fr-FR">
+                                    <Setter Property="DayOfWeekHeaderFormat" Value="SingleCharacter" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </igEditors:XamDateTimeEditor.Resources>
+                </igEditors:XamDateTimeEditor>
+                <igEditors:XamDateTimeEditor
+                    x:Name="perfo1DateDeb"
+                    Grid.Row="2"
+                    Grid.Column="1"
+                    MinWidth="200"
+                    Margin="3"
+                    DisplayMode="IncludeBoth"
+                    IsAlwaysInEditMode="True"
+                    IsReadOnly="{Binding IsReadPerforation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=true, TargetNullValue=true}"
+                    Mask="{Binding ElementName=masksComboBox, Path=SelectedItem.Tag, Mode=OneWay}"
+                    Value="{Binding DatedebPerforation}">
+                    <igEditors:XamDateTimeEditor.Resources>
+                        <Style TargetType="{x:Type igEditors:XamMonthCalendar}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding RelativeSource={x:Static RelativeSource.Self}, Path=Dispatcher.Thread.CurrentUICulture.Name}" Value="fr-FR">
+                                    <Setter Property="DayOfWeekHeaderFormat" Value="SingleCharacter" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </igEditors:XamDateTimeEditor.Resources>
+                </igEditors:XamDateTimeEditor>
+                <igEditors:XamDateTimeEditor
+                    x:Name="perfo2DateDeb"
+                    Grid.Row="3"
+                    Grid.Column="1"
+                    MinWidth="200"
+                    Margin="3"
+                    DisplayMode="IncludeBoth"
+                    IsAlwaysInEditMode="True"
+                    IsReadOnly="{Binding IsReadPerforation2, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=true, TargetNullValue=true}"
+                    Mask="{Binding ElementName=masksComboBox, Path=SelectedItem.Tag, Mode=OneWay}"
+                    Value="{Binding DatedebPerforation2}">
+                    <igEditors:XamDateTimeEditor.Resources>
+                        <Style TargetType="{x:Type igEditors:XamMonthCalendar}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding RelativeSource={x:Static RelativeSource.Self}, Path=Dispatcher.Thread.CurrentUICulture.Name}" Value="fr-FR">
+                                    <Setter Property="DayOfWeekHeaderFormat" Value="SingleCharacter" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </igEditors:XamDateTimeEditor.Resources>
+                </igEditors:XamDateTimeEditor>
+
+                <Label
+                    Grid.Row="1"
+                    Grid.Column="2"
+                    Content="au : " />
+                <Label
+                    Grid.Row="2"
+                    Grid.Column="2"
+                    Content="au : " />
+                <Label
+                    Grid.Row="3"
+                    Grid.Column="2"
+                    Content="au : " />
+
+                <igEditors:XamDateTimeEditor
+                    x:Name="glomeDateFin"
+                    Grid.Row="1"
+                    Grid.Column="3"
+                    MinWidth="200"
+                    Margin="3"
+                    DisplayMode="IncludeBoth"
+                    IsAlwaysInEditMode="True"
+                    IsReadOnly="{Binding IsReadGlomerule, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=true, TargetNullValue=true}"
+                    Mask="{Binding ElementName=masksComboBox, Path=SelectedItem.Tag, Mode=OneWay}"
+                    Value="{Binding DatefinGlomerule}">
+                    <igEditors:XamDateTimeEditor.Resources>
+                        <Style TargetType="{x:Type igEditors:XamMonthCalendar}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding RelativeSource={x:Static RelativeSource.Self}, Path=Dispatcher.Thread.CurrentUICulture.Name}" Value="fr-FR">
+                                    <Setter Property="DayOfWeekHeaderFormat" Value="SingleCharacter" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </igEditors:XamDateTimeEditor.Resources>
+                </igEditors:XamDateTimeEditor>
+                <igEditors:XamDateTimeEditor
+                    x:Name="perfo1DateFin"
+                    Grid.Row="2"
+                    Grid.Column="3"
+                    MinWidth="200"
+                    Margin="3"
+                    DisplayMode="IncludeBoth"
+                    IsAlwaysInEditMode="True"
+                    IsReadOnly="{Binding IsReadPerforation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=true, TargetNullValue=true}"
+                    Mask="{Binding ElementName=masksComboBox, Path=SelectedItem.Tag, Mode=OneWay}"
+                    Value="{Binding DatefinPerforation}">
+                    <igEditors:XamDateTimeEditor.Resources>
+                        <Style TargetType="{x:Type igEditors:XamMonthCalendar}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding RelativeSource={x:Static RelativeSource.Self}, Path=Dispatcher.Thread.CurrentUICulture.Name}" Value="fr-FR">
+                                    <Setter Property="DayOfWeekHeaderFormat" Value="SingleCharacter" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </igEditors:XamDateTimeEditor.Resources>
+                </igEditors:XamDateTimeEditor>
+                <igEditors:XamDateTimeEditor
+                    x:Name="perfo2DateFin"
+                    Grid.Row="3"
+                    Grid.Column="3"
+                    MinWidth="200"
+                    Margin="3"
+                    DisplayMode="IncludeBoth"
+                    IsAlwaysInEditMode="True"
+                    IsReadOnly="{Binding IsReadPerforation2, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=true, TargetNullValue=true}"
+                    Mask="{Binding ElementName=masksComboBox, Path=SelectedItem.Tag, Mode=OneWay}"
+                    Value="{Binding DatefinPerforation2}">
+                    <igEditors:XamDateTimeEditor.Resources>
+                        <Style TargetType="{x:Type igEditors:XamMonthCalendar}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding RelativeSource={x:Static RelativeSource.Self}, Path=Dispatcher.Thread.CurrentUICulture.Name}" Value="fr-FR">
+                                    <Setter Property="DayOfWeekHeaderFormat" Value="SingleCharacter" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </igEditors:XamDateTimeEditor.Resources>
+                </igEditors:XamDateTimeEditor>
+
+                <StackPanel
+                    Grid.Row="1"
+                    Grid.Column="4"
+                    Orientation="Horizontal">
+                    <Button
+                        x:Name="BtGlomeOuverture"
+                        Margin="3"
+                        Command="{Binding SynchroPeriodeInstaGrappeCommand}"
+                        CommandParameter="Glomerule">
+                        <StackPanel Margin="3" Orientation="Horizontal">
+                            <Image
+                                Width="20"
+                                VerticalAlignment="Center"
+                                Source="/Views/Images/icons8-cloud-sync-64.png" />
+                            <TextBlock
+                                Margin="3"
+                                VerticalAlignment="Center"
+                                Text="Synchronisation"
+                                TextAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                    <!--<Button  x:Name="BtGlomeFermeture" Margin="3" >
+                        <StackPanel Orientation="Horizontal" Margin="3" >
+                            <Image Source="pack://application:,,,/Views/paramètres-30.png" Width="20" VerticalAlignment="Center"  />
+                            <TextBlock Text="Fermeture" TextAlignment="Center" VerticalAlignment="Center" Margin="3"/>
+                        </StackPanel>
+                    </Button>-->
+                </StackPanel>
+
+                <StackPanel
+                    Grid.Row="2"
+                    Grid.Column="4"
+                    Orientation="Horizontal">
+                    <Button
+                        x:Name="BtPerfo1Ouverture"
+                        Margin="3"
+                        Command="{Binding SynchroPeriodeInstaGrappeCommand}"
+                        CommandParameter="Perforation">
+                        <StackPanel Margin="3" Orientation="Horizontal">
+                            <Image
+                                Width="20"
+                                VerticalAlignment="Center"
+                                Source="pack://application:,,,/Views/Images/icons8-cloud-sync-64.png" />
+                            <TextBlock
+                                Margin="3"
+                                VerticalAlignment="Center"
+                                Text="Synchronisation"
+                                TextAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                    <!--<Button  x:Name="BtPerfo1Fermeture" Margin="3" >
+                        <StackPanel Orientation="Horizontal" Margin="3" >
+                            <Image Source="pack://application:,,,/Views/paramètres-30.png" Width="20" VerticalAlignment="Center"  />
+                            <TextBlock Text="Fermeture" TextAlignment="Center" VerticalAlignment="Center" Margin="3"/>
+                        </StackPanel>
+                    </Button>-->
+                </StackPanel>
+                <StackPanel
+                    Grid.Row="3"
+                    Grid.Column="4"
+                    Orientation="Horizontal">
+                    <Button
+                        x:Name="BtPerfo2Ouverture"
+                        Margin="3"
+                        Command="{Binding SynchroPeriodeInstaGrappeCommand}"
+                        CommandParameter="Perforation2">
+                        <StackPanel Margin="3" Orientation="Horizontal">
+                            <Image
+                                Width="20"
+                                VerticalAlignment="Center"
+                                Source="pack://application:,,,/Views/Images/icons8-cloud-sync-64.png" />
+                            <TextBlock
+                                Margin="3"
+                                VerticalAlignment="Center"
+                                Text="Synchronisation"
+                                TextAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                    <!--<Button  x:Name="BtPerfo2Fermeture" Margin="3" >
+                        <StackPanel Orientation="Horizontal" Margin="3" >
+                            <Image Source="pack://application:,,,/Views/paramètres-30.png" Width="20" VerticalAlignment="Center"  />
+                            <TextBlock Text="Fermeture" TextAlignment="Center" VerticalAlignment="Center" Margin="3"/>
+                        </StackPanel>
+                    </Button>-->
+                </StackPanel>
+            </Grid>
+
+        </Grid>
+    </Grid>
+</UserControl>
