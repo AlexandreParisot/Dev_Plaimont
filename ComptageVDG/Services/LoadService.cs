@@ -40,8 +40,7 @@ namespace ComptageVDG.Services
         {
             try
             {
-
-               IniModel =  SerialisationHelper.DeserialiserFromFile<FileIniModel>(FileIni);
+               IniModel =  JsonSerialize.DeserializeFromFile<FileIniModel>(FileIni);
                return IniModel;               
             }
             catch
@@ -56,9 +55,10 @@ namespace ComptageVDG.Services
             try
             {
                 if (!string.IsNullOrEmpty(fileIni))
-                    FileIni = FileIni;
+                    FileIni = fileIni;
 
-                return SerialisationHelper.SerialiserToFile(IniModel, FileIni);
+                JsonSerialize.SerializeToFile(FileIni, IniModel);
+                return true;
             }
             catch
             {

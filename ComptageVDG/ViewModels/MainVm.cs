@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace ComptageVDG.ViewModels
 {
@@ -23,9 +24,10 @@ namespace ComptageVDG.ViewModels
         public RelayCommand PeriodeCommand { get; set; }
         public RelayCommand DeclarationCommand { get; set; }
 
+
         public event EventHandler LoadUC;
 
-        public MainVm()
+        public  MainVm()
         {
 
             Message.Notify += Message_Notify;
@@ -38,17 +40,7 @@ namespace ComptageVDG.ViewModels
             SynchroInstagrappeCommand = new RelayCommand(SynchroPeriodeInstaGrappeCommandExecute);
 
             DeclarationCommand = new RelayCommand(() => { toggleView("Parcelle"); });
-            PeriodeCommand = new RelayCommand(() => { toggleView("Periode"); });
-
-            LoadDicoCampagne(true).GetAwaiter().OnCompleted(() => {
-                if (string.IsNullOrEmpty(DateCampagne))
-                    toggleView("Periode");
-                else
-                    toggleView("Campagne");
-            });         
-
-            Message.Notify += Message_Notify;
-
+            PeriodeCommand = new RelayCommand(() => { toggleView("Periode"); });    
             
         }
 
@@ -79,7 +71,7 @@ namespace ComptageVDG.ViewModels
             }
         }
 
-        public async Task LoadDicoCampagne(bool firstLoad = false)
+        public async Task<bool> LoadDicoCampagne(bool firstLoad = false)
         {            
             var dico = await ServiceCampagne.asyncDicoCampagne();
 
@@ -87,19 +79,51 @@ namespace ComptageVDG.ViewModels
             {
                 ListeCampagne = dico;
                 DateCampagne = dico.First().Key;
+                return true;
             }
             else
             {
                 ListeCampagne = new Dictionary< string, string>();
                 DateCampagne = String.Empty;
+                return false;
             }             
         }
 
-        private void Message_Notify(object? sender, MessageEventArgs e)
+
+        public async void LoadMainView()
+        {
+            ShowLoading("Chargement informations campagne ...");
+            if (await LoadDicoCampagne(true))
+            {
+                ShowLoading($"Chargement parcelle {DateCampagne} ...");
+                 await ServiceCampagne.asyncLoadYearCampagne(DateCampagne).ContinueWith((x) => {
+                    if (x.IsCompleted)
+                         ParcelleModels = x.Result;
+                      ClearLoading();
+                }) ;
+
+                toggleView("Campagne");                
+            }
+            else
+            {
+                ClearLoading();
+                toggleView("Periode");
+            }
+               
+            
+
+        }
+
+        private  void Message_Notify(object? sender, MessageEventArgs e)
         {
             if( e.Data is string retour && retour == "RETOUR")
             {
                 toggleView("Campagne");
+            }
+
+            if(e.Data is string load && load == "CHARGEVIEW")
+            {
+                LoadMainView();
             }
         }
 
@@ -109,18 +133,23 @@ namespace ComptageVDG.ViewModels
             switch (View)
             {
                 case "Campagne":
-                    LoadUC?.Invoke(typeof(CampagneView).FullName, EventArgs.Empty );                   
+                    UcLoad(typeof(CampagneView).FullName);                   
                     break;
-                case "Periode":                   
-                    LoadUC?.Invoke(typeof(PeriodeView).FullName, EventArgs.Empty);
+                case "Periode":
+                    UcLoad(typeof(PeriodeView).FullName);
                     break;
                 case "Parcelle":
-                    LoadUC?.Invoke(typeof(ParcelleView).FullName,EventArgs.Empty);
+                    UcLoad(typeof(ParcelleView).FullName);
                     break;
             }
 
             currentView = View;
         }
 
+
+        private void UcLoad(string? nameUc)
+        {
+            Dispatcher.CurrentDispatcher.BeginInvoke(() => LoadUC?.Invoke(nameUc, EventArgs.Empty) );
+        }
     }
 }

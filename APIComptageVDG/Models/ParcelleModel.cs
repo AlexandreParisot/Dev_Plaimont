@@ -2,7 +2,7 @@
 {
     public class ParcelleModel
     {
-        public bool inCampage { get; set; }
+        public bool inCampagne { get; set; }
         public int id_parcelle { get; set; }
         public string? ut { get; set; }
         public string? nameParcelle { get; set; }

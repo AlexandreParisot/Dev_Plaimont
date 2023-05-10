@@ -11,7 +11,7 @@ using System.Text.Json;
 
 namespace APIComptageVDG.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     public class CampagneVDGController : Controller
     {
@@ -27,12 +27,13 @@ namespace APIComptageVDG.Controllers
         }
 
 
+        #region Instagrappe
 
         /// <summary>
         /// retour le token de l'api Instagrappe
         /// </summary>
         /// <returns></returns>
-        [HttpGet]
+        [HttpGet("Instagrappe")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<String>> GetTokenInstagrappe()
@@ -68,7 +69,7 @@ namespace APIComptageVDG.Controllers
         /// <param name="AnneeCampagne"></param>
         /// <param name="code_modele"></param>
         /// <returns></returns>
-        [HttpGet("Engagnement")]
+        [HttpGet("Instagrappe/Engagement")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<string>> GetEngagementInstagrappe(string code_activite, string AnneeCampagne)
@@ -121,7 +122,7 @@ namespace APIComptageVDG.Controllers
         /// </summary>
         /// <param name="AnneeCampagne"></param>
         /// <returns></returns>
-        [HttpGet("EngagnementVersDeGrappe")]
+        [HttpGet("Instagrappe/EngagementVersDeGrappe")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<string>> GetEngagementVersDeGrappe(string AnneeCampagne)
@@ -174,7 +175,7 @@ namespace APIComptageVDG.Controllers
         /// </summary>
         /// <param name="AnneeCampagne"></param>
         /// <returns></returns>
-        [HttpGet("EngagnementCadreVersDeGrappe")]
+        [HttpGet("Instagrappe/EngagementCadreVersDeGrappe")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<string>> GetEngagementCadreVersDeGrappe(string AnneeCampagne)
@@ -236,7 +237,7 @@ namespace APIComptageVDG.Controllers
         /// <param name="AnneeCampagne"></param>
         /// <param name="code_modele"></param>
         /// <returns></returns>
-        [HttpGet("EngagnementCadre")]
+        [HttpGet("Instagrappe/EngagementCadre")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<string>> GetEngagementCadreInstagrappe(string code_activite, string AnneeCampagne)
@@ -298,7 +299,7 @@ namespace APIComptageVDG.Controllers
         /// <param name="AnneeCampagne"></param>
         /// <param name="code_modele"></param>
         /// <returns></returns>
-        [HttpGet("export/cgu")]
+        [HttpGet("Instagrappe/export/cgu")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult> cgu()
@@ -327,7 +328,7 @@ namespace APIComptageVDG.Controllers
         }
 
 
-        [HttpPost("Config")]
+        [HttpPost("Instagrappe/Config")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult> Config()
@@ -342,6 +343,7 @@ namespace APIComptageVDG.Controllers
         }
 
 
+        #region Private Methode 
 
         /// <summary>
         /// retourne le token instagrappe
@@ -371,7 +373,8 @@ namespace APIComptageVDG.Controllers
             return string.Empty;
         }
 
-
+        #endregion
+        #endregion
 
         #region Lavilog
 
@@ -383,12 +386,12 @@ namespace APIComptageVDG.Controllers
         [HttpGet("Lavilog/GetParcelles")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<IEnumerable<ParcelleModel>>> GetParcelles()
+        public async Task<ActionResult<IEnumerable<ParcelleModel>>> GetParcelles(int year)
         {
 
             if (!_service.IsConnected)
                 return BadRequest("Aucune Connexion au serveur de base");
-            var result = await _service.AsyncGetParcelles();
+            var result = await _service.AsyncGetParcelles( year);
             if(result != null)
                 return Ok(result);
             return BadRequest("Une erreur s'est produite.");
@@ -402,13 +405,13 @@ namespace APIComptageVDG.Controllers
         [HttpGet("Lavilog/GetParcellesCampagne")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<IEnumerable<ParcelleModel>>> GetParcellesCampagne(int year)
+        public async Task<ActionResult<IEnumerable<ParcelleModel>>> GetParcellesInCampagne(int year)
         {
 
             if (!_service.IsConnected)
                 return BadRequest("Aucune Connexion au serveur de base");
 
-            return Ok(await _service.AsyncGetParcellesCampagne(year));
+            return Ok(await _service.AsyncGetParcellesInCampagne(year));
         }
     
 
@@ -418,19 +421,20 @@ namespace APIComptageVDG.Controllers
         /// <param name="year"></param>
         /// <param name="parcelles"></param>
         /// <returns></returns>
-        [HttpGet("Lavilog/SetParcellesCampagne")]
+        [HttpPost("Lavilog/SetParcellesCampagne")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<bool>> SetParcellesCampagne(int year, IEnumerable<ParcelleModel> parcelles)
+        public async Task<ActionResult<List<int>>> SetParcellesCampagne(int year, IEnumerable<ParcelleModel> parcelles)
         {
 
             if (!_service.IsConnected)
                 return BadRequest("Aucune Connexion au serveur de base");
+
             var result = await _service.AsyncSetParcellesCampagne(parcelles, year);
-            if(result)
+            if(result!= null && result.Count == parcelles.Count())
                 return Ok(result);
 
-            return BadRequest(false);
+            return BadRequest(result);
         }
 
 
@@ -487,7 +491,39 @@ namespace APIComptageVDG.Controllers
                 return Ok(enregistement);
         }
 
+        [HttpGet("Lavilog/GetLastSynchro")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<string>> GetLastSynchro()
+        {
+
+            if (!_service.IsConnected)
+                return BadRequest("Aucune Connexion au serveur de base");
+
+                return Ok(await _service.AsyncGetLastSynchro());
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost("Lavilog/SetLastSynchro")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<bool>> SetLastSynchro()
+        {
+
+            if (!_service.IsConnected)
+                return BadRequest("Aucune Connexion au serveur de base");
+            
+            if ( !await _service.AsyncSetLastSynchro())
+                return BadRequest(false);
+            else
+                return Ok(true);
+        }
+
+
         #endregion
     }
-        
+
 }

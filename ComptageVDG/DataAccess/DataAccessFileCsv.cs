@@ -33,14 +33,19 @@ namespace ComptageVDG.DataAccess
         public string ConnectionString { get => _csvFilePath; set => _csvFilePath = value; }
         public bool IsConnected { get => Directory.Exists(_csvFilePath); }
 
-        public Task<int> AsyncExecuteNoQuery<T>(string query, object[]? paramsArray = null)
+        public async  Task<int> AsyncExecuteNoQuery(string query, object[]? paramsArray = null)
         {
-            return Task.Run(() => { return ExecuteNoQuery(query, paramsArray); });
+            return await Task.Run(() => { return ExecuteNoQuery(query, paramsArray); });
         }
 
-        public Task<IEnumerable<T>> AsyncExecuteQuery<T>(string query, object[]? paramsArray = null)
+        public async Task<IEnumerable<T>> AsyncExecuteQuery<T>(string query, object[]? paramsArray = null)
         {
-            return Task.Run(() => { return ExecuteQuery<T>(query, paramsArray); });
+            return await Task.Run(() => { return ExecuteQuery<T>(query, paramsArray); });
+        }
+
+        public async Task<DataTable> AsyncExecuteQuery(string query, object[]? paramsArray = null)
+        {
+            return await Task.Run(() => ExecuteQuery(query, paramsArray));
         }
 
         public bool Close()
@@ -245,7 +250,6 @@ namespace ComptageVDG.DataAccess
 
                     using (var dr = new CsvDataReader(csv))
                     {
-
                         dataTable.Load(dr);
                     }
 
@@ -271,8 +275,7 @@ namespace ComptageVDG.DataAccess
             return File.Exists(Path.Combine(ConnectionString, file));
         }
 
-
-       
+        
 
     }
 }

@@ -25,7 +25,8 @@ namespace ComptageVDG.Views
         {
             InitializeComponent();
             this.DataContext = (CampagneVM) this.Resources["viewModel"];
-            ((CampagneVM)this.DataContext).RefreshCommand.Execute(this);
+            if (((CampagneVM)this.DataContext).ParcelleModelsinCampagne == null)
+                ((CampagneVM)this.DataContext).RefreshCommand.Execute(this);
         }
 
         private void UserControl_Unloaded(object sender, RoutedEventArgs e)

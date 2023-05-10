@@ -16,10 +16,14 @@ namespace ComptageVDG.ViewModels
     public class CampagneVM:BaseViewModel
     {
 
-    
+
 
         //private ObservableCollection<ParcelleModel> parcelleModels;
         //public ObservableCollection<ParcelleModel> ParcelleModels { get => parcelleModels; set => SetProperty(ref parcelleModels , value); }
+
+        
+        public string LastSynchro { get => _lastSynchro; set=> SetProperty(ref _lastSynchro,value); }
+
 
        public RelayCommand RefreshCommand { get; set; }
 
@@ -29,8 +33,9 @@ namespace ComptageVDG.ViewModels
         {
             Message.Notify += Message_Notify;
             RefreshCommand = new RelayCommand(async() => {
-                ShowLoading($"Chargement de la campagne {DateCampagne}");
-                await asyncLoadParcelles(DateCampagne).ContinueWith((x) => { ClearLoading();});
+                ShowLoading($"Chargement de la campagne {DateCampagne}");               
+                await asyncLoadParcelles(DateCampagne).ContinueWith((x) => ClearLoading());
+                await asyncGetLastSynchro();                
             });
         }
 
@@ -49,11 +54,12 @@ namespace ComptageVDG.ViewModels
                 {
                     ShowLoading($"Chargement de la campagne {dateCp}");
                     LoadParcelles(dateCp);
+                    asyncGetLastSynchro().GetAwaiter();
                     ClearLoading();
-
                 }
             }
         }
+
 
 
         private async Task asyncLoadParcelles(string dateCp)
@@ -61,21 +67,24 @@ namespace ComptageVDG.ViewModels
             if (string.IsNullOrEmpty(dateCp))
                 return;
 
-            // Dispatcher.CurrentDispatcher.Invoke(new Action(async () => {  }));
+            ParcelleModelsinCampagne = await ServiceCampagne.asyncLoadYearInCampagne(dateCp);
+            
+        }
 
-            ParcelleModels = await ServiceCampagne.asyncLoadYearCampagne(dateCp);
-
-            return;
+        private async Task asyncGetLastSynchro()
+        {
+            LastSynchro = await ServiceCampagne.getTimeSynchroCampagne();
         }
 
 
-        private void LoadParcelles(string dateCp)
+        private  void LoadParcelles(string dateCp)
         {            
             if (string.IsNullOrEmpty(dateCp))
                 return;
 
-          Dispatcher.CurrentDispatcher.BeginInvoke(new Action(() => { 
-              ParcelleModels = ServiceCampagne.LoadYearCampagne(dateCp);
+          Dispatcher.CurrentDispatcher.BeginInvoke(new Action(() => {
+              ParcelleModelsinCampagne = ServiceCampagne.asyncLoadYearInCampagne(DateCampagne).GetAwaiter().GetResult();
+               asyncGetLastSynchro().GetAwaiter();
           }));
                return;
         }

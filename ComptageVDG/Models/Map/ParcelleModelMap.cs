@@ -19,7 +19,7 @@ namespace ComptageVDG.Models.Map
             Map(m => m.cptGlomerule).Name("Glomerule");
             Map(m => m.cptPerforation1).Name("Perforation");
             Map(m => m.cptPerforation2).Name("Perforation2");
-            Map(m => m.inCampage).Name("InCampagne");
+            Map(m => m.inCampagne).Name("InCampagne");
             Map(m => m.qualite).Name("Qualite");
         }
     }

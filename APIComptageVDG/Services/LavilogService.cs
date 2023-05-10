@@ -66,7 +66,7 @@ namespace APIComptageVDG.Services
 
             var campagnes = new Dictionary<int,string>();
 
-            var reader = await connection.ExecuteReaderAsync($"select distinct Codlib1 from dbo.sPortailParametre where Prefixe = 'CVDG' order by Codlib1 desc ");
+            var reader = await connection.ExecuteReaderAsync($"select distinct Codlib1 from dbo.sPortailParametre where Prefixe = 'CVDG' and Codlib1 is not null and Codlib2 is not null order by Codlib1 desc ");
 
             
                 while (reader.Read())
@@ -84,6 +84,76 @@ namespace APIComptageVDG.Services
             return campagnes;
         }
 
+
+        public async Task<string> AsyncGetLastSynchro()
+        {
+            if (connection == null)
+                throw new ArgumentNullException("La connexion est null.");
+
+            var strSynchro = string.Empty;
+            var reader = await connection.ExecuteReaderAsync($"select Valeur from dbo.sPortailParametre where Prefixe = 'CVDG' and Codlib1 ='last synchro' ");
+
+
+            while (reader.Read())
+            {
+                try
+                {
+                    strSynchro = $"{reader.GetString(0)}";
+                }
+                catch (Exception ex)
+                {
+                    Gestion.Erreur($"Erreur sur la recuperation des campagnes. {ex.Message}");
+                }
+            }
+
+            return strSynchro;
+        }
+
+        public async Task<bool> AsyncSetLastSynchro()
+        {
+            if (connection == null)
+                throw new ArgumentNullException("La connexion est null.");
+
+            var strSynchro = string.Empty;
+            var reader = await connection.ExecuteReaderAsync($"select  1 from dbo.sPortailParametre where Prefixe = 'CVDG' and Codlib2 is null  and Codlib1 ='last synchro'");
+            var trouve = false;
+            var result = true;
+            var req = string.Empty;
+            while (reader.Read())
+            {
+                try
+                {
+                    if(reader.GetInt32(0) ==1)
+                        trouve = true;
+                }
+                catch (Exception ex)
+                {
+                    Gestion.Erreur($"Erreur sur la recuperation des campagnes. {ex.Message}");
+                }
+            }
+
+
+            if (trouve)
+            {
+                req = $" Update dbo.sPortailParametre set Valeur = '{DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss")}' ";
+                req += $"  where Prefixe = 'CVDG' and Codlib2 is null  and Codlib1 ='last synchro'";
+            }
+            else
+            {
+                req = $" Insert INTO dbo.sPortailParametre (Prefixe,Codlib1 ,Codlib2,Valeur) VALUES";
+                req += $" ('CVDG','last synchro','', '{DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss")}')";
+            }
+
+            if (!string.IsNullOrEmpty(req) && await connection.ExecuteAsync(req) == 0)
+            {
+                Gestion.Erreur($"Err Insert last synchro");
+                result = false;
+            }
+            return result;
+        }
+
+
+
         public async Task<IEnumerable<PeriodeModel>> AsyncGetPeriode(string year)
         {
             if (connection == null)
@@ -91,7 +161,7 @@ namespace APIComptageVDG.Services
 
             var periodes = new List<PeriodeModel>();    
 
-            var portailParametres =  await connection.QueryAsync<SPortailParametre>($"select * from dbo.sPortailParametre where Prefixe = 'CVDG' and Codlib1 = '{year}'  ");
+            var portailParametres =  await connection.QueryAsync<SPortailParametre>($"select * from dbo.sPortailParametre where Prefixe = 'CVDG' and Codlib1 = '{year}' ");
 
             if (portailParametres.Any())
             {
@@ -103,8 +173,11 @@ namespace APIComptageVDG.Services
                         periodeModel.Year = int.Parse(year);
                         periodeModel.Id_periode = portailParametre.ID_sPortailParametre;
                         periodeModel.Name = portailParametre.Codlib2!;
-                        periodeModel.DateDebut = DateTime.ParseExact(portailParametre.Valeur!.Split(" ").ToArray()[0], "dd/MM/yyyy", null);
-                        periodeModel.DateFin = DateTime.ParseExact(portailParametre.Valeur!.Split(" ").ToArray()[1], "dd/MM/yyyy", null);
+                        if (!string.IsNullOrEmpty(portailParametre.Valeur.Trim()))
+                        {
+                            periodeModel.DateDebut = DateTime.ParseExact(portailParametre.Valeur!.Split(" ").ToArray()[0].Trim(), "dd/MM/yyyy", null);
+                            periodeModel.DateFin = DateTime.ParseExact(portailParametre.Valeur!.Split(" ").ToArray()[1].Trim(), "dd/MM/yyyy", null);
+                        }
 
                         periodes.Add(periodeModel);
                     }catch(Exception ex)
@@ -148,7 +221,7 @@ namespace APIComptageVDG.Services
                                 else
                                     insert = true;
                                 sPortailParametre.Codlib1 = periode?.Year.ToString();
-                                sPortailParametre.Valeur = $"{periode?.DateDebut.ToString("dd/MM/yyyy")} {periode?.DateFin.ToString("dd/MM/yyyy")}";
+                                sPortailParametre.Valeur = $"{periode?.DateDebut?.ToString("dd/MM/yyyy")} {periode?.DateFin?.ToString("dd/MM/yyyy")}".Trim();
                                 sPortailParametre.Prefixe = "CVDG";
                                 sPortailParametre.Codlib2 = periode?.Name;
 
@@ -183,127 +256,25 @@ namespace APIComptageVDG.Services
             return result;
         }
 
-        public async Task<IEnumerable<ParcelleModel>> AsyncGetParcellesCampagne(int year)
-        {
-            throw new NotImplementedException();
-        }
-
-
-
-        public async Task<IEnumerable<ParcelleModel>> AsyncGetParcelle()
-        {
-            var result = new List<ParcelleModel>();
-
-            var req = $" select UT.ID_vUniteTravail as id_parcelle " + Environment.NewLine +
-            $"                   , UT.UniteTravail_Code ut " + Environment.NewLine +
-            $"                   , UT.UniteTravail_Libelle  nameParcelle                                                                                                                                  " + Environment.NewLine +
-            $"                   , UT.UniteTravail_Libelle2 nameParcelle2                                                                                                                                 " + Environment.NewLine +
-            //$"                   , P.Propriete_Libelle                                                                                                                                                    "+ Environment.NewLine +
-            //$"                   , P.ID_vPropriete                                                                                                                                                        "+ Environment.NewLine +
-            //$"                   , NOTE.[Note: Appellation de travail] Appellation                                                                                                                        "+ Environment.NewLine +
-            //$"                   , TMP.Travail_CepageMajoritaire Cepage                                                                                                                                   "+ Environment.NewLine +
-            $"                   , CASE WHEN NOTE.[Note: Site de vendange] <> 'CONDOM' THEN                                                                                                               " + Environment.NewLine +
-            $"                                                                                                  (SELECT TOP 1 O2.[Qualité de classement]                                                  " + Environment.NewLine +
-            $"                                                                                                  FROM vObservation O2                                                                      " + Environment.NewLine +
-            $"                                                                                                                  INNER JOIN vAction A2 ON A2.ID_vAction = O2.ID_vAction                    " + Environment.NewLine +
-            $"                                                                                                                  INNER JOIN vActionUniteTravail AUT2 ON AUT2.ID_vAction = A2.ID_vAction    " + Environment.NewLine +
-            $"                                                                                                  WHERE O2.ID_vObservationProgramme = 2                                                     " + Environment.NewLine +
-            $"                                                                                                                  AND AUT2.ID_vUniteTravail = UT.ID_vUniteTravail                           " + Environment.NewLine +
-            $"                                                                                                  ORDER BY A2.Action_Date DESC                                                              " + Environment.NewLine +
-            $"                                                                                                  )                                                                                         " + Environment.NewLine +
-            $"                                                   ELSE                                                                                                                                     " + Environment.NewLine +
-            $"                                                                   (SELECT TOP 1 O2.[Qualité classement COND]                                                                               " + Environment.NewLine +
-            $"                                                                                                  FROM vObservation O2                                                                      " + Environment.NewLine +
-            $"                                                                                                                  INNER JOIN vAction A2 ON A2.ID_vAction = O2.ID_vAction                    " + Environment.NewLine +
-            $"                                                                                                                  INNER JOIN vActionUniteTravail AUT2 ON AUT2.ID_vAction = A2.ID_vAction    " + Environment.NewLine +
-            $"                                                                                                  WHERE O2.ID_vObservationProgramme = 126                                                   " + Environment.NewLine +
-            $"                                                                                                                  AND AUT2.ID_vUniteTravail = UT.ID_vUniteTravail                           " + Environment.NewLine +
-            $"                                                                                                  ORDER BY A2.Action_Date DESC                                                              " + Environment.NewLine +
-            $"                                                                                                  )                                                                                         " + Environment.NewLine +
-            $"                                                   END qualite                                                                                                                              " + Environment.NewLine +
-            //$"                   , NOTE.[Note: Prestataire] Prestataire                                                                                                                                   "+ Environment.NewLine +
-            //$"                   , NOTE.[Note: Type de récolte] TypeVendange                                                                                                                              "+ Environment.NewLine +
-            //$"                   , NOTE.[Note: Site de vendange] SiteVendange                                                                                                                             "+ Environment.NewLine +
-            //$"                   , NOTE.[Note: Vendanges - Totalement vendangée] TotalementVendangee                                                                                                      "+ Environment.NewLine +
-            //$"                   , TMP.Travail_Superficie surface                                                                                                                                         "+ Environment.NewLine +
-            //$"                   , SUM(R.Recolte_Superficie) as SuperficieVendangee                                                                                                                       "+ Environment.NewLine +
-            //$"                   , SUM(R.Recolte_Poids) as PoidsVendange                                                                                                                                  "+ Environment.NewLine +
-            $"    from dbo.vUniteTravail UT                                                                                                                                                               " + Environment.NewLine +
-            $"                   inner join dbo.vPropriete P on P.ID_vPropriete = UT.ID_vPropriete                                                                                                        " + Environment.NewLine +
-            $"                   inner join dbo.pTmpTravailCompoColonne TMP on TMP.ID_vUniteTravail = UT.ID_vUniteTravail                                                                                 " + Environment.NewLine +
-            $"                   left  join dbo.pTmpNoteColonne_vUniteTravail NOTE ON NOTE.ID_Target = UT.ID_vUniteTravail                                                                                " + Environment.NewLine +
-            $"                   left  join dbo.vRecolte R on R.ID_vUniteTravail = UT.ID_vUniteTravail and year(R.Recolte_Date) = year(getdate())                                                         " + Environment.NewLine +
-            $"    where(UT.UniteTravail_Archive = 0 OR UT.UniteTravail_Archive IS NULL)                                                                                                                   " + Environment.NewLine +
-            $"        --AND TMP.Travail_Superficie > 0                                                                                                                                                    " + Environment.NewLine +
-            $"        and P.Portail = 1                                                                                                                                                                   " + Environment.NewLine +
-            $"        and(select count(*) from dbo.vInterlocuteur INT where INT.ID_vPropriete = P.ID_vPropriete and isnull(INT.Interloc_Email, '') not like '') > 0                                       " + Environment.NewLine +
-            $"        --and P.ID_vPropriete = 1947                                                                                                                                                        " + Environment.NewLine +
-            $"        AND(SELECT COUNT(*)                                                                                                                                                                 " + Environment.NewLine +
-            $"                FROM tNote                                                                                                                                                                  " + Environment.NewLine +
-            $"                WHERE Note_Fichier = 'vUniteTravail'                                                                                                                                        " + Environment.NewLine +
-            $"                    and Note_Categorie = 'Accident climatique'                                                                                                                              " + Environment.NewLine +
-            $"                    and Note_Valeur = 'Non production'                                                                                                                                      " + Environment.NewLine +
-            $"                    and ID_Target = UT.ID_vUniteTravail                                                                                                                                     " + Environment.NewLine +
-            $"                    and DATEPART(year, Note_Date) = DATEPART(year, GETDATE())                                                                                                               " + Environment.NewLine +
-            $"            ) = 0                                                                                                                                                                           " + Environment.NewLine +
-            $"        AND NOTE.[Note: Statut de la plantation] = 'EN PRODUCTION'                                                                                                                          " + Environment.NewLine +
-            $"                   and(                                                                                                                                                                     " + Environment.NewLine +
-            $"                (                                                                                                                                                                           " + Environment.NewLine +
-            $"                    TMP.Travail_DateDebut IS NULL                                                                                                                                           " + Environment.NewLine +
-            $"                        AND                                                                                                                                                                 " + Environment.NewLine +
-            $"                    (SELECT TOP 1 Travail_DateDebut                                                                                                                                         " + Environment.NewLine +
-            $"                        FROM pTmpTravailCompoColonne AS p2                                                                                                                                  " + Environment.NewLine +
-            $"                        WHERE p2.Travail_DateDebut <= getdate()                                                                                                                             " + Environment.NewLine +
-            $"                        AND p2.ID_vUniteTravail = TMP.ID_vUniteTravail                                                                                                                      " + Environment.NewLine +
-            $"                        ORDER BY Travail_DateDebut DESC                                                                                                                                     " + Environment.NewLine +
-            $"                    ) IS NULL                                                                                                                                                               " + Environment.NewLine +
-            $"                )                                                                                                                                                                           " + Environment.NewLine +
-            $"             OR                                                                                                                                                                             " + Environment.NewLine +
-            $"                TMP.Travail_DateDebut = (                                                                                                                                                   " + Environment.NewLine +
-            $"                                            SELECT TOP 1 Travail_DateDebut                                                                                                                  " + Environment.NewLine +
-            $"                                            FROM pTmpTravailCompoColonne AS p2                                                                                                              " + Environment.NewLine +
-            $"                                            WHERE p2.Travail_DateDebut <= getdate()                                                                                                         " + Environment.NewLine +
-            $"                                                AND p2.ID_vUniteTravail = TMP.ID_vUniteTravail                                                                                              " + Environment.NewLine +
-            $"                                            ORDER BY Travail_DateDebut DESC                                                                                                                 " + Environment.NewLine +
-            $"                                        )                                                                                                                                                   " + Environment.NewLine +
-            $"            )                                                                                                                                                                               " + Environment.NewLine +
-            $"    group by UT.ID_vUniteTravail   " + Environment.NewLine +
-            $"                   ,  UT.UniteTravail_Code                                                                                                                                                         " + Environment.NewLine +
-            $"                   , UT.UniteTravail_Libelle                                                                                                                                                " + Environment.NewLine +
-            $"                   , UT.UniteTravail_Libelle2                                                                                                                                               " + Environment.NewLine +
-            //$"                   , P.Propriete_Libelle                                                                                                                                                    "+ Environment.NewLine +
-            //$"                   , P.ID_vPropriete                                                                                                                                                        "+ Environment.NewLine +
-            // $"                   , NOTE.[Note: Appellation de travail]                                                                                                                                    "+ Environment.NewLine +
-            //$"                   , TMP.Travail_CepageMajoritaire                                                                                                                                          "+ Environment.NewLine +
-            $"                   , TMP.Travail_Superficie                                                                                                                                                 " + Environment.NewLine +
-            $"                   , NOTE.[Note: Qualité]                                                                                                                                                   " + Environment.NewLine 
-           // $"                   , NOTE.[Note: Prestataire]                                                                                                                                               "+ Environment.NewLine +
-           //  $"                   , NOTE.[Note: Type de récolte]                                                                                                                                           "+ Environment.NewLine +
-           // $"                   , NOTE.[Note: Site de vendange]                                                                                                                                          "+ Environment.NewLine +
-           // $"                   , NOTE.[Note: Vendanges - Totalement vendangée]                                                                                                                          ";
-           ;
-
-            result = connection.Query<ParcelleModel>(req).ToList();
-
-            return result;
-
-        }
-
-        public async Task<IEnumerable<ParcelleModel>> AsyncGetParcelles()
+        public async Task<IEnumerable<ParcelleModel>> AsyncGetParcellesInCampagne(int year)
         {
             try
             {
                 var result = new List<ParcelleModel>();
 
-                var str = @" 
-                    select UT.ID_vUniteTravail as id_parcelle 
+                var req = @$" 
+                   select CASE tN.Note_Valeur 
+						WHEN '2023' THEN 'true'
+						ELSE 'false'
+					end inCampagne
+                    , UT.ID_vUniteTravail as id_parcelle 
                    , UT.UniteTravail_Code ut 
                    , UT.UniteTravail_Libelle  nameParcelle                                                                                                                                  
                    , UT.UniteTravail_Libelle2 nameParcelle2                                                                                                                                 
-                   , P.Propriete_Libelle                                                                                                                                                    
-                   , P.ID_vPropriete                                                                                                                                                        
-                   , NOTE.[Note : Appellation de travail] Appellation                                                                                                                        
-                   , TMP.Travail_CepageMajoritaire Cepage                                                                                                                                   
+                  -- , P.Propriete_Libelle                                                                                                                                                    
+                  -- , P.ID_vPropriete                                                                                                                                                        
+                  -- , NOTE.[Note : Appellation de travail] Appellation                                                                                                                        
+                 --  , TMP.Travail_CepageMajoritaire Cepage                                                                                                                                   
                    , CASE WHEN NOTE.[Note : Site de vendange] <> 'CONDOM' THEN                                                                                                               
                                                                                                   (SELECT TOP 1 O2.[Qualité de classement]                                                  
                                                                                                   FROM vObservation O2                                                                      
@@ -323,18 +294,22 @@ namespace APIComptageVDG.Services
                                                                                                   ORDER BY A2.Action_Date DESC                                                              
                                                                                                   )                                                                                         
                                                    END qualite                                                                                                                              
-                   , NOTE.[Note : Prestataire] Prestataire                                                                                                                                   
-                   , NOTE.[Note : Type de récolte] TypeVendange                                                                                                                              
-                   , NOTE.[Note : Site de vendange] SiteVendange                                                                                                                             
-                   , NOTE.[Note : Vendanges - Totalement vendangée] TotalementVendangee                                                                                                      
+                  -- , NOTE.[Note : Prestataire] Prestataire                                                                                                                                   
+                  -- , NOTE.[Note : Type de récolte] TypeVendange                                                                                                                              
+                  -- , NOTE.[Note : Site de vendange] SiteVendange                                                                                                                             
+                  -- , NOTE.[Note : Vendanges - Totalement vendangée] TotalementVendangee                                                                                                      
                    , TMP.Travail_Superficie surface                                                                                                                                         
-                   , SUM(R.Recolte_Superficie) as SuperficieVendangee                                                                                                                       
-                   , SUM(R.Recolte_Poids) as PoidsVendange                                                                                                                                  
+                  -- , SUM(R.Recolte_Superficie) as SuperficieVendangee                                                                                                                       
+                  -- , SUM(R.Recolte_Poids) as PoidsVendange   
+				  , null cptGlomerule
+				  , null cptPerforation1 
+				  , null cptPerforation2
     from dbo.vUniteTravail UT                                                                                                                                                               
                    inner join dbo.vPropriete P on P.ID_vPropriete = UT.ID_vPropriete                                                                                                        
                    inner join dbo.pTmpTravailCompoColonne TMP on TMP.ID_vUniteTravail = UT.ID_vUniteTravail                                                                                 
                    left  join dbo.pTmpNoteColonne_vUniteTravail NOTE ON NOTE.ID_Target = UT.ID_vUniteTravail                                                                                
-                   left  join dbo.vRecolte R on R.ID_vUniteTravail = UT.ID_vUniteTravail and year(R.Recolte_Date) = year(getdate())                                                         
+                   left  join dbo.vRecolte R on R.ID_vUniteTravail = UT.ID_vUniteTravail and year(R.Recolte_Date) = year(getdate()) 
+				   inner join dbo.tNote tN on  tN.ID_Target = UT.ID_vUniteTravail and tN.Note_Categorie = 'CVDG' and tN.Note_Valeur = '{year}'
     where(UT.UniteTravail_Archive = 0 OR UT.UniteTravail_Archive IS NULL)                                                                                                                   
         --AND TMP.Travail_Superficie > 0                                                                                                                                                    
         and P.Portail = 1                                                                                                                                                                   
@@ -373,65 +348,134 @@ namespace APIComptageVDG.Services
 					,  UT.UniteTravail_Code
                    , UT.UniteTravail_Libelle                                                                                                                                                
                    , UT.UniteTravail_Libelle2                                                                                                                                               
-                   , P.Propriete_Libelle                                                                                                                                                    
-                   , P.ID_vPropriete                                                                                                                                                        
-                   , NOTE.[Note : Appellation de travail]                                                                                                                                   
-                   , TMP.Travail_CepageMajoritaire                                                                                                                                          
+                  -- , P.Propriete_Libelle                                                                                                                                                    
+                  -- , P.ID_vPropriete                                                                                                                                                        
+                 --  , NOTE.[Note : Appellation de travail]                                                                                                                                   
+                --   , TMP.Travail_CepageMajoritaire                                                                                                                                          
                    , TMP.Travail_Superficie                                                                                                                                                 
                    , NOTE.[Note : Qualité]                                                                                                                                                 
-                   , NOTE.[Note : Prestataire]                                                                                                                                             
-                   , NOTE.[Note : Type de récolte]                                                                                                                                        
+                  -- , NOTE.[Note : Prestataire]                                                                                                                                             
+                 --  , NOTE.[Note : Type de récolte]                                                                                                                                        
                    , NOTE.[Note : Site de vendange]                                                                                                                                        
-                   , NOTE.[Note : Vendanges - Totalement vendangée]   
-";
+                 --  , NOTE.[Note : Vendanges - Totalement vendangée]    
+				 ,tN.Note_Valeur";
 
-                string req = $"SELECT UT.ID_vUniteTravail id_parcelle " + Environment.NewLine+
-                             $"   , UT.UniteTravail_Code ut" + Environment.NewLine +
-                            // $"   , TMP.Travail_CommuneMajoritaire" + Environment.NewLine +
-                            // $"   , UT.UniteTravail_Structure" + Environment.NewLine +
-                            // $"   , UT.UniteTravail_Site" + Environment.NewLine +
-                            // $"   , P.Propriete_Libelle" + Environment.NewLine +
-                            // $"   , A.Designation" + Environment.NewLine +
-                             $"   , NOTE.[Note : Qualité] qualite" + Environment.NewLine +
-                             $"   , TMP.Travail_Superficie surface" + Environment.NewLine +
-                            // $"   , NOTE.[Note : Statut de la plantation]" + Environment.NewLine +
-                             $"   , UT.UniteTravail_Libelle nameParcelle" + Environment.NewLine +
-                             $"   , UT.UniteTravail_Libelle2 nameParcelle2 " + Environment.NewLine +
-                             //$"     , null Campagne" + Environment.NewLine +
-                             $"  FROM LAVILOG.administrateur.Vignoble_vUniteTravail UT" + Environment.NewLine +
-                             $"  LEFT JOIN dbo.vPropriete P ON P.ID_vPropriete = UT.ID_vPropriete" +   Environment.NewLine +
-                             $"  LEFT JOIN dbo.pTmpTravailCompoColonne TMP ON TMP.ID_vUniteTravail = UT.ID_vUniteTravail" + Environment.NewLine +
-                             $"  LEFT JOIN dbo.pTmpNoteColonne_vUniteTravail NOTE ON NOTE.ID_Target = UT.ID_vUniteTravail" + Environment.NewLine +
-                             $"  LEFT JOIN dbo.pTmpNoteColonne_vPropriete NOTEP ON NOTEP.ID_Target = UT.ID_vPropriete" + Environment.NewLine +
-                             $"  LEFT JOIN dbo.pAppellation A ON A.ID_pAppellation = NOTE.[ID_Note : Appellation de travail]" + Environment.NewLine +
-                             $"  --and VU.ID_vUniteTravail = 15498" + Environment.NewLine +
-                             $"  WHERE (P.Propriete_Archive = 0 OR P.Propriete_Archive IS NULL) " + Environment.NewLine +
-                             $"  --and UT.ID_vUniteTravail = 15498" + Environment.NewLine +
-                             $"   AND (UT.UniteTravail_Archive = 0 OR UT.UniteTravail_Archive IS NULL)" + Environment.NewLine +
-                             $"  --and UT.UniteTravail_Structure <> 'R&D'" + Environment.NewLine +
-                             $"  --AND TMP.Travail_Superficie > 0" + Environment.NewLine +
-                             $"   AND (" + Environment.NewLine +
-                             $"            (" +  Environment.NewLine +
-                             $"                TMP.Travail_DateDebut IS NULL " + Environment.NewLine +
-                             $"                AND " + Environment.NewLine +
-                             $"                (SELECT TOP 1 Travail_DateDebut" + Environment.NewLine +
-                             $"                    FROM pTmpTravailCompoColonne AS p2 " + Environment.NewLine +
-                             $"                    WHERE p2.Travail_DateDebut <= '18/04/2023 16:04:43'" + Environment.NewLine +
-                             $"                    AND p2.ID_vUniteTravail = TMP.ID_vUniteTravail " + Environment.NewLine +
-                             $"                    ORDER BY Travail_DateDebut DESC) IS NULL" + Environment.NewLine +
-                             $"             )" + Environment.NewLine +
-                             $"             OR" +   Environment.NewLine +
-                             $"             TMP.Travail_DateDebut = (SELECT TOP 1 Travail_DateDebut " + Environment.NewLine +
-                             $"                                        FROM pTmpTravailCompoColonne AS p2 " +   Environment.NewLine +
-                             $"                                        WHERE p2.Travail_DateDebut <= '18/04/2023 16:04:43'" + Environment.NewLine +
-                             $"                                            AND p2.ID_vUniteTravail = TMP.ID_vUniteTravail " + Environment.NewLine +
-                             $"                                        ORDER BY Travail_DateDebut DESC)" + Environment.NewLine +
-                             $"      )" + Environment.NewLine +
-                             $"  ORDER BY P.Propriete_Code" + Environment.NewLine +
-                             $"         , P.Propriete_Libelle" + Environment.NewLine +
-                             $"         , UT.UniteTravail_Code" + Environment.NewLine +
-                             $"         , UT.UniteTravail_Libelle";
+                result = connection.Query<ParcelleModel>(req).ToList();
 
+                return result;
+            }
+            catch (Exception e)
+            {
+                Gestion.Erreur($"{e.Message}");
+                return null;
+            }
+
+        }
+
+        public async Task<IEnumerable<ParcelleModel>> AsyncGetParcelles(int year)
+        {
+            try
+            {
+                var result = new List<ParcelleModel>();
+
+                var req = @$" 
+                   select  UT.ID_vUniteTravail as id_parcelle 
+                   , UT.UniteTravail_Code ut 
+                   , UT.UniteTravail_Libelle  nameParcelle                                                                                                                                  
+                   , UT.UniteTravail_Libelle2 nameParcelle2                                                                                                                                 
+                  -- , P.Propriete_Libelle                                                                                                                                                    
+                  -- , P.ID_vPropriete                                                                                                                                                        
+                  -- , NOTE.[Note : Appellation de travail] Appellation                                                                                                                        
+                 --  , TMP.Travail_CepageMajoritaire Cepage                                                                                                                                   
+                   , CASE WHEN NOTE.[Note : Site de vendange] <> 'CONDOM' THEN                                                                                                               
+                                                                                                  (SELECT TOP 1 O2.[Qualité de classement]                                                  
+                                                                                                  FROM vObservation O2                                                                      
+                                                                                                                  INNER JOIN vAction A2 ON A2.ID_vAction = O2.ID_vAction                    
+                                                                                                                  INNER JOIN vActionUniteTravail AUT2 ON AUT2.ID_vAction = A2.ID_vAction    
+                                                                                                  WHERE O2.ID_vObservationProgramme = 2                                                     
+                                                                                                                  AND AUT2.ID_vUniteTravail = UT.ID_vUniteTravail                           
+                                                                                                  ORDER BY A2.Action_Date DESC                                                              
+                                                                                                  )                                                                                         
+                                                   ELSE                                                                                                                                     
+                                                                   (SELECT TOP 1 O2.[Qualité classement COND]                                                                               
+                                                                                                  FROM vObservation O2                                                                      
+                                                                                                                  INNER JOIN vAction A2 ON A2.ID_vAction = O2.ID_vAction                    
+                                                                                                                  INNER JOIN vActionUniteTravail AUT2 ON AUT2.ID_vAction = A2.ID_vAction    
+                                                                                                  WHERE O2.ID_vObservationProgramme = 126                                                   
+                                                                                                                  AND AUT2.ID_vUniteTravail = UT.ID_vUniteTravail                           
+                                                                                                  ORDER BY A2.Action_Date DESC                                                              
+                                                                                                  )                                                                                         
+                                                   END qualite                                                                                                                              
+                  -- , NOTE.[Note : Prestataire] Prestataire                                                                                                                                   
+                  -- , NOTE.[Note : Type de récolte] TypeVendange                                                                                                                              
+                  -- , NOTE.[Note : Site de vendange] SiteVendange                                                                                                                             
+                  -- , NOTE.[Note : Vendanges - Totalement vendangée] TotalementVendangee                                                                                                      
+                   , TMP.Travail_Superficie surface                                                                                                                                         
+                  -- , SUM(R.Recolte_Superficie) as SuperficieVendangee                                                                                                                       
+                  -- , SUM(R.Recolte_Poids) as PoidsVendange   
+				  ,CASE tN.Note_Valeur 
+						WHEN '{year}' THEN 'true'
+						ELSE 'false'
+					end InCampagne
+				  , null cptGlomerule
+				  , null cptPerforation1 
+				  , null cptPerforation2
+    from dbo.vUniteTravail UT                                                                                                                                                               
+                   inner join dbo.vPropriete P on P.ID_vPropriete = UT.ID_vPropriete                                                                                                        
+                   inner join dbo.pTmpTravailCompoColonne TMP on TMP.ID_vUniteTravail = UT.ID_vUniteTravail                                                                                 
+                   left  join dbo.pTmpNoteColonne_vUniteTravail NOTE ON NOTE.ID_Target = UT.ID_vUniteTravail                                                                                
+                   left  join dbo.vRecolte R on R.ID_vUniteTravail = UT.ID_vUniteTravail and year(R.Recolte_Date) = year(getdate()) 
+				   left join dbo.tNote tN on  tN.ID_Target = UT.ID_vUniteTravail and tN.Note_Categorie = 'CVDG' and tN.Note_Valeur = '{year}'
+    where(UT.UniteTravail_Archive = 0 OR UT.UniteTravail_Archive IS NULL)                                                                                                                   
+        --AND TMP.Travail_Superficie > 0                                                                                                                                                    
+        and P.Portail = 1                                                                                                                                                                   
+        and(select count(*) from dbo.vInterlocuteur INT where INT.ID_vPropriete = P.ID_vPropriete and isnull(INT.Interloc_Email, '') not like '') > 0                                       
+        --and P.ID_vPropriete = 1947                                                                                                                                                        
+        AND(SELECT COUNT(*)                                                                                                                                                                 
+                FROM tNote                                                                                                                                                                  
+                WHERE Note_Fichier = 'vUniteTravail'                                                                                                                                        
+                    and Note_Categorie = 'Accident climatique'                                                                                                                              
+                    and Note_Valeur = 'Non production'                                                                                                                                      
+                    and ID_Target = UT.ID_vUniteTravail                                                                                                                                     
+                    and DATEPART(year, Note_Date) = DATEPART(year, GETDATE())                                                                                                               
+            ) = 0                                                                                                                                                                           
+        AND NOTE.[Note : Statut de la plantation] = 'EN PRODUCTION'                                                                                                                          
+                   and(                                                                                                                                                                     
+                (                                                                                                                                                                           
+                    TMP.Travail_DateDebut IS NULL                                                                                                                                           
+                        AND                                                                                                                                                                 
+                    (SELECT TOP 1 Travail_DateDebut                                                                                                                                         
+                        FROM pTmpTravailCompoColonne AS p2                                                                                                                                  
+                        WHERE p2.Travail_DateDebut <= getdate()                                                                                                                             
+                        AND p2.ID_vUniteTravail = TMP.ID_vUniteTravail                                                                                                                      
+                        ORDER BY Travail_DateDebut DESC                                                                                                                                     
+                    ) IS NULL                                                                                                                                                               
+                )                                                                                                                                                                           
+             OR                                                                                                                                                                             
+                TMP.Travail_DateDebut = (                                                                                                                                                   
+                                            SELECT TOP 1 Travail_DateDebut                                                                                                                  
+                                            FROM pTmpTravailCompoColonne AS p2                                                                                                              
+                                            WHERE p2.Travail_DateDebut <= getdate()                                                                                                         
+                                                AND p2.ID_vUniteTravail = TMP.ID_vUniteTravail                                                                                              
+                                            ORDER BY Travail_DateDebut DESC                                                                                                                 
+                                        )                                                                                                                                                   
+            )                                                                                                                                                                               
+    group by UT.ID_vUniteTravail   
+					,  UT.UniteTravail_Code
+                   , UT.UniteTravail_Libelle                                                                                                                                                
+                   , UT.UniteTravail_Libelle2                                                                                                                                               
+                  -- , P.Propriete_Libelle                                                                                                                                                    
+                  -- , P.ID_vPropriete                                                                                                                                                        
+                 --  , NOTE.[Note : Appellation de travail]                                                                                                                                   
+                --   , TMP.Travail_CepageMajoritaire                                                                                                                                          
+                   , TMP.Travail_Superficie                                                                                                                                                 
+                   , NOTE.[Note : Qualité]                                                                                                                                                 
+                  -- , NOTE.[Note : Prestataire]                                                                                                                                             
+                 --  , NOTE.[Note : Type de récolte]                                                                                                                                        
+                   , NOTE.[Note : Site de vendange]                                                                                                                                        
+                 --  , NOTE.[Note : Vendanges - Totalement vendangée]    
+				 ,tN.Note_Valeur
+    order by   UT.UniteTravail_Code";
 
                 result = connection.Query<ParcelleModel>(req).ToList();
                                 
@@ -446,10 +490,10 @@ namespace APIComptageVDG.Services
         }
 
 
-        public async Task<bool> AsyncSetParcellesCampagne(IEnumerable<ParcelleModel> Parcelles,  int year)
+        public async Task<List<int>> AsyncSetParcellesCampagne(IEnumerable<ParcelleModel> Parcelles,  int year)
         {
 
-            bool result = true;
+            List<int> result = new List<int>();
             try
             {
                 foreach (ParcelleModel parcelleModel in Parcelles)
@@ -459,37 +503,37 @@ namespace APIComptageVDG.Services
                     bool trouve = false;
                     while (reader.Read())
                     {
-                        if (reader.GetString(0) == "1")
+                        if (reader.GetInt32(0) == 1)
                             trouve = true;
                     }
                     //si il faut le sotir delete 
-                    if (!parcelleModel.inCampage && trouve)
+                    if (!parcelleModel.inCampagne && trouve)
                     {
                         if (await connection.ExecuteAsync($"Delete from dbo.tNote where Note_Categorie = 'CVDG' and Note_Valeur = '{year}' and Note_Fichier = 'vUniteTravail' and ID_Target = {parcelleModel.id_parcelle}") == 0)
                         {
                             Gestion.Erreur($"Err Delete campagne {year} - Parcelle {parcelleModel.id_parcelle} - {parcelleModel.nameParcelle} ");
-                            result = false;
-                        }
+                        }else
+                            result.Add(parcelleModel.id_parcelle);
                     }
                     //si il faut l'ajoute insert.
-                    else if (parcelleModel.inCampage && !trouve)
+                    else if (parcelleModel.inCampagne && !trouve)
                     {
                         var req = $" Insert INTO dbo.tNote ( ID_Target, Note_Valeur, Note_Categorie, Note_Fichier, Note_Date , Note_Type) VALUES";
-                        req += $" ({parcelleModel.id_parcelle}, '{year}', 'CVDG','vUniteTravail', {DateTime.Now}, 0)";
+                        req += $" ({parcelleModel.id_parcelle}, '{year}', 'CVDG','vUniteTravail', GETDATE(), 0)";
 
                        if(await connection.ExecuteAsync(req) == 0)
                         {
                             Gestion.Erreur($"Err Insert campagne {year} - Parcelle {parcelleModel.id_parcelle} - {parcelleModel.nameParcelle} ");
-                            result = false;
                         }
-                            
+                        else
+                         result.Add(parcelleModel.id_parcelle);                            
                     }
                 }
                 return result;
             }catch(Exception ex)
             {
                 Gestion.Erreur($"Err  Campagne {year} -  {ex.Message}");
-                return false;
+                return new List<int>();
             }
         }
 

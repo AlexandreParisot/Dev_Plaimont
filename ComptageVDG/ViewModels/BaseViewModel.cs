@@ -24,6 +24,7 @@ namespace ComptageVDG.ViewModels
         protected static string PathProg = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
         protected static string FullFileIni = Path.Combine(PathProg, FileIni);
 
+        protected static string _lastSynchro;
 
         private static string _dateCampagne;
         public  string DateCampagne { get => _dateCampagne; set {
@@ -44,7 +45,8 @@ namespace ComptageVDG.ViewModels
         private static ObservableCollection<ParcelleModel> parcelleModels;
         public ObservableCollection<ParcelleModel> ParcelleModels { get => parcelleModels; set => SetProperty(ref parcelleModels, value); }
 
-
+        private static ObservableCollection<ParcelleModel> parcelleModelinCampagne;
+        public ObservableCollection<ParcelleModel> ParcelleModelsinCampagne { get => parcelleModelinCampagne; set => SetProperty(ref parcelleModelinCampagne, value); }
 
         protected static ConnexionService? Connexion = new ConnexionService();
 

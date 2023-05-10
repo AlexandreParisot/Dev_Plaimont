@@ -115,7 +115,7 @@
                         <Image Source="{Binding Source='/Views/Images/icons8-clock-64.png'}" />
                     </ig:XamMenuItem.Icon>
                 </ig:XamMenuItem>
-                <ig:XamMenuItem Command="{Binding DeclarationCommand}" Header="Déclaration Campagne">
+                <ig:XamMenuItem Command="{Binding DeclarationCommand}" Header="Sélection Parcelle">
                     <ig:XamMenuItem.Icon>
                         <Image Source="{Binding Source='/Views/Images/icons8-grapes-64.png'}" />
                     </ig:XamMenuItem.Icon>

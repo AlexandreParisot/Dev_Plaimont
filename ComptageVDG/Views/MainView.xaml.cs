@@ -25,7 +25,11 @@ namespace ComptageVDG.Views
         {
             InitializeComponent();
             if(DataContext != null && DataContext is MainVm mainVm)
+            {
                 mainVm.LoadUC += MainVm_LoadUC;
+                mainVm.LoadMainView();
+            }
+                
             //ThemeManager.SetTheme(this, new MetroTheme());
         }
 

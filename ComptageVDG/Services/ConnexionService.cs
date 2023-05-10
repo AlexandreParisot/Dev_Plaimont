@@ -20,15 +20,21 @@ namespace ComptageVDG.Services
         public  bool CreateAccess(string connexionString)
         {
             Instance = null;
-
+            var result = true;
             if (Directory.Exists(connexionString))
             {
-                Instance = new DataAccessFileCsv() { ConnectionString = connexionString };
+                Instance = new DataAccessFileCsv() { ConnectionString = connexionString.Trim() };
                 ServiceCampagne = new ServiceCampagneCsv(this);
-                return true;
             }
+            else if (connexionString.Trim().StartsWith("http", StringComparison.OrdinalIgnoreCase))
+            {
+                Instance = new DataAccessApi() { ConnectionString = connexionString.Trim() };
+                ServiceCampagne = new ServiceCampagneApi(this);
+            }
+            else
+                result = false;
 
-            return false;
+            return result;
                        
         }
 

@@ -199,5 +199,19 @@ namespace ComptageVDG.Services
             //throw new NotImplementedException();
             return false;
         }
+
+        public async Task<string> getTimeSynchroCampagne()
+        {
+            return await Task.Run(() => { return DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss"); });
+        }
+
+        public async Task<ObservableCollection<ParcelleModel>> asyncLoadYearInCampagne(string DateCampagne)
+        {
+           var  Parcelles =  await Task.Run(() => LoadYearCampagne(DateCampagne));
+           var retour = Parcelles.Where((x) => x.inCampagne == true);
+            if (retour != null)
+                return new ObservableCollection<ParcelleModel>(retour!);
+            else return new ObservableCollection<ParcelleModel>();
+        }
     }
 }

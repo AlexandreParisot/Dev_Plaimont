@@ -23,6 +23,9 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="pack://application:,,,/Resources/DynamicStyles/DynamicStyles.xaml" />
             </ResourceDictionary.MergedDictionaries>
+
+            <SolidColorBrush x:Key="GreenBrush" Color="#FF9FB328" />
+            <SolidColorBrush x:Key="RedBrush" Color="#FFDC3F76" />
             <viewmodel:ParcelleVM x:Key="viewModel" />
             <converter:DebugConverter x:Key="DebugConverter" />
             <converter:ComboDictionary x:Key="ComboYears" />
@@ -48,7 +51,7 @@
                 VerticalAlignment="Top"
                 Panel.ZIndex="99"
                 Orientation="Horizontal">
-                <Button
+                <!--<Button
                     x:Name="BT_OPENPARCELLE"
                     Margin="3"
                     Command="{Binding OpenCampagneCommand}">
@@ -63,7 +66,7 @@
                             Text="Ouverture Campagne"
                             TextAlignment="Center" />
                     </StackPanel>
-                </Button>
+                </Button>-->
                 <Button
                     x:Name="BT2"
                     Margin="3"
@@ -110,49 +113,110 @@
         </Grid>
         <Grid Grid.Row="1">
             <igDP:XamDataGrid
-                Name="xamDataGridCampagne"
+                Name="xamDataGridParcelle"
                 AutoFit="True"
-                DataSource="{Binding ParcelleModels}">
+                DataSource="{Binding ParcelleModels}"
+                DataValueChangedDirect="xamDataGridParcelle_DataValueChangedDirect"
+                SelectedDataItem="{Binding CurrentParcelle}">
+
                 <igDP:XamDataGrid.Resources>
                     <Style TargetType="{x:Type igEditors:XamNumericEditor}">
                         <Setter Property="Foreground" Value="#000" />
                     </Style>
-                </igDP:XamDataGrid.Resources>
+                   
+                    <!--<Style TargetType="{x:Type igDP:RecordSelector}"
+                       BasedOn="{x:Null}">
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="{x:Type igDP:RecordSelector}">
+                                    <Grid VerticalAlignment="Center" >
+                                        <CheckBox HorizontalAlignment="Center"
+                                               Margin="0,6,0,-6"
 
-                <igDP:XamDataGrid.FieldSettings>
-                    <igDP:FieldSettings AllowEdit="False" />
+                                          VerticalAlignment="Center"
+                                          Command="{Binding ChangeStateCommand}"
+                                          CommandParameter="{Binding Path=DataItem}"
+                                          IsChecked="{Binding Path=DataItem.inCampagne, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    </Grid>
+
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>-->
+
+                    <!--  This Style puts a CheckBox into the header area above the record selectors.  -->
+                    <!--
+                    <Style TargetType="{x:Type igDP:HeaderPrefixArea}"
+                       BasedOn="{x:Null}">
+                        <Setter Property="Visibility"
+                            Value="Visible" />
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="{x:Type igDP:HeaderPrefixArea}">
+                                    <CheckBox HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"
+                                              Margin="0,5,0,-5"
+                                          IsChecked="{Binding Path=DataPresenter.DataContext.AllMembersAreChecked, Mode=TwoWay}" />
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>-->
+                </igDP:XamDataGrid.Resources>
+                <igDP:XamDataGrid.FieldSettings>                    
+                    <igDP:FieldSettings
+                        AllowEdit="False"                        
+                        AllowHiding="Always"
+                        AllowRecordFiltering="true"
+                        FilterLabelIconDropDownType="MultiSelectExcelStyle" />
                 </igDP:XamDataGrid.FieldSettings>
 
                 <igDP:XamDataGrid.FieldLayouts>
-
+                    
                     <igDP:FieldLayout>
-                        <!--<igDP:FieldLayout.Settings>
-                                <igDP:FieldLayoutSettings AutoArrangeCells="Never" AutoGenerateFields="False" />
-                            </igDP:FieldLayout.Settings>-->
+                        <igDP:FieldLayout.Settings>
+                            <igDP:FieldLayoutSettings
+                                AutoGenerateFields="False"
+                                HeaderPlacement="OnTopOnly"
+                                HeaderPrefixAreaDisplayMode="FieldChooserButton" />
+                        </igDP:FieldLayout.Settings>
+
                         <igDP:FieldLayout.Fields>
-                            <igDP:CheckBoxField Name="inParcelle" Label="" />
-                            <igDP:NumericField Name="id_parcelle" Label="Id UT" />
-                            <igDP:NumericField Name="ut" Label="UT" />
+                            <igDP:CheckBoxField
+                                Name="inCampagne"
+                                Width="20"
+                                AllowEdit="true"
+                                IsReadOnly="False"                                
+                                Label="">                               
+                                <igDP:Field.Settings>                                    
+                                    <igDP:FieldSettings DataValueChangedNotificationsActive="true" />
+                                </igDP:Field.Settings>
+                            </igDP:CheckBoxField>
+                            <igDP:NumericField
+                                Name="id_parcelle"
+                                Width="50"
+                                Label="Id UT" />
+                            <igDP:TextField Name="ut" Label="UT" />
                             <igDP:TextField Name="nameParcelle" Label="Désignation" />
                             <igDP:TextField Name="nameParcelle2" Label="Désignation 2" />
-                            <igDP:NumericField Name="surface" Label="Surface" />
+                            <igDP:NumericField
+                                Name="surface"
+                                Label="Surface"
+                                Mask="#,###" />
                             <igDP:NumericField Name="qualite" Label="Qualite" />
-                            <igDP:NumericField Name="cptGlomerule" Label="Glomérule" />
-                            <igDP:NumericField Name="cptPerforation1" Label="Perforation" />
-                            <igDP:NumericField Name="cptPerforation1" Label="Perforation 2" />
-                            <!--<igDP:Field.Settings>
-                                <igDP:FieldSettings>
-                                    <igDP:FieldSettings.EditorStyle>
-                                        <Style TargetType="{x:Type igEditors:XamTextEditor}">
-                                            <Setter Property="TextWrapping"
-                                                    Value="Wrap" />
-                                        </Style>
-                                    </igDP:FieldSettings.EditorStyle>
-                                </igDP:FieldSettings>
-                            </igDP:Field.Settings>-->
-
-
+                            <igDP:NumericField
+                                Name="cptGlomerule"
+                                Label="Glomérule"
+                                Visibility="Collapsed" />
+                            <igDP:NumericField
+                                Name="cptPerforation1"
+                                Label="Perforation"
+                                Visibility="Collapsed" />
+                            <igDP:NumericField
+                                Name="cptPerforation2"
+                                Label="Perforation 2"
+                                Visibility="Collapsed" />
                         </igDP:FieldLayout.Fields>
+
                     </igDP:FieldLayout>
                 </igDP:XamDataGrid.FieldLayouts>
             </igDP:XamDataGrid>

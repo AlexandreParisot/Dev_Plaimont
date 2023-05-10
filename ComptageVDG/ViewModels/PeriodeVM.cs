@@ -165,8 +165,8 @@ namespace ComptageVDG.ViewModels
 
 
             SynchroPeriodeInstaGrappeCommand = new RelayCommand<string>(SynchroPeriodeInstaGrappeCommandExecute, SynchroPeriodeInstaGrappeCommandCanExecute);
-
-            asyncLoadPeriode(DateCampagne).GetAwaiter().OnCompleted(() => { Year = DateCampagne; });
+            ShowLoading($"Chargement de la période {DateCampagne}");
+            asyncLoadPeriode(DateCampagne).GetAwaiter().OnCompleted(() => { Year = DateCampagne; ClearLoading(); });
            
         }
                 
@@ -364,8 +364,15 @@ namespace ComptageVDG.ViewModels
                     var success = await ServiceCampagne.asyncSetPeriodeCampagne(PeriodeModels, Year);
                     if (!success)
                     {
-                        message = "Une erreure s'est produite lors de la sauvegarde.";                       
-                        PeriodeModels = new ObservableCollection<PeriodeModel>();
+                        message = "Une erreure s'est produite lors de la sauvegarde.";    
+                        if(PeriodeModels?.FirstOrDefault()!.Id_periode > 0)
+                        {
+                            ShowLoading($"Chargement de la période {year}");
+                            await  asyncLoadPeriode(Year).ContinueWith((x)=>ClearLoading());
+                        }
+                        else
+                            PeriodeModels = new ObservableCollection<PeriodeModel>();
+
                         ErrorNotif(message);
                     }
                     else
@@ -378,6 +385,8 @@ namespace ComptageVDG.ViewModels
                                 ListeCampagne.Add(Year, $"Campagne {Year}");
                                 DateCampagne = Year;
                             }
+                            ShowLoading($"Chargement de la période {year}");
+                            await asyncLoadPeriode(Year).ContinueWith((x) => ClearLoading());
                         }
                         InfoNotif($"Sauvegarde période {Year} effectuée.");
                     }

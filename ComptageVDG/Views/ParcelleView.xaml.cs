@@ -1,4 +1,5 @@
-﻿using ComptageVDG.ViewModels;
+﻿using ComptageVDG.Models;
+using ComptageVDG.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,5 +33,18 @@ namespace ComptageVDG.Views
             if (DataContext is ParcelleVM parcelle)
                 parcelle.CloseVM();
         }
+
+        private void xamDataGridParcelle_DataValueChangedDirect(object sender, Infragistics.Windows.DataPresenter.Events.DataValueChangedEventArgs e)
+        {
+            if (DataContext is ParcelleVM parcellevm)
+            {
+                if (e.Record.DataItem is ParcelleModel parcelle)
+                {
+
+                    parcellevm.ChangeStateCommand.Execute(e.Record.DataItem);
+                }
+            }
+        }
+
     }
 }
