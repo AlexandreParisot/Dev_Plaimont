@@ -19,14 +19,14 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="pack://application:,,,/Resources/DynamicStyles/DynamicStyles.xaml" />
             </ResourceDictionary.MergedDictionaries>
-            <viewmodel:PeriodeVM x:Key="viewModel" />
+            <!--<viewmodel:PeriodeVM x:Key="viewModel" />-->
             <converter:DebugConverter x:Key="DebugConverter" />
             <converter:ComboDictionary x:Key="ComboYears" />
         </ResourceDictionary>
     </UserControl.Resources>
-    <UserControl.DataContext>
+    <!--<UserControl.DataContext>
         <viewmodel:PeriodeVM />
-    </UserControl.DataContext>
+    </UserControl.DataContext>-->
     <Grid x:Name="LayoutCampagne">
         <ig:ThemeManager.Theme>
             <ig:MetroTheme />

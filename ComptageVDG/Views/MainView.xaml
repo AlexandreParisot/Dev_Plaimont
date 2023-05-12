@@ -30,40 +30,6 @@
             <DataTemplate x:Key="LoadingView">
                 <uc:LoadingView x:Name="LoadingView" />
             </DataTemplate>
-            <!--<DataTemplate x:Key="CampagneView">
-                <uc:CampagneView x:Name="CampagneView" />
-            </DataTemplate>
-
-            <DataTemplate x:Key="ParcelleView">
-                <uc:ParcelleView x:Name="ParcelleView" />
-            </DataTemplate>
-
-            <DataTemplate x:Key="PeriodeView">
-                <uc:PeriodeView x:Name="PeriodeView" />
-            </DataTemplate>-->
-
-
-            <!--<x:Array x:Key="YearsArray" Type="sys:String"
-            xmlns:sys="clr-namespace:System;assembly=mscorlib">
-                <sys:String>2023</sys:String>
-                <sys:String>2022</sys:String>
-            </x:Array>-->
-
-            <!--<XmlDataProvider x:Key="PrioritiesYearsXml">
-                    <x:XData>
-                        <priorities xmlns="">
-                            <priority text="Campagne 2023" id="2023" />
-                            <priority text="Campagne 2022" id="2021" />
-                            <priority text="Campagne 2021" id="2021" />
-                        </priorities>
-                    </x:XData>
-                </XmlDataProvider>-->
-            <!--<ctrl:ObjectCollection x:Key="Yerslist">
-                <sys:String>2023</sys:String>
-                <sys:String>2022</sys:String>
-                <sys:String>2021</sys:String>
-            </ctrl:ObjectCollection>-->
-
         </ResourceDictionary>
     </Window.Resources>
     <Window.DataContext>

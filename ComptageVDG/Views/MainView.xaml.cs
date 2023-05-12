@@ -50,15 +50,24 @@ namespace ComptageVDG.Views
         private void CloseUserControl()
         {
             // Remove current user control
-            LayoutRoot.Children.Clear();
+            if(LayoutRoot.Children.Count > 0)
+            {
+               if(LayoutRoot.Children[0] is UserControl uc)
+                {
+                    LayoutRoot.Children.Clear();
+                    //if (LayoutRoot.Children[0] is UserControl uc2 && uc.Equals(uc2) )
+                        uc = null;
+                }
+            }
+            
+           
         }
 
 
         private bool ShouldLoadUserControl(string controlName)
         {
             bool ret = true;
-
-            // Don't reload a control already loaded.
+            //Don't reload a control already loaded.
             if (LayoutRoot.Children.Count > 0)
             {
                 if (((UserControl)LayoutRoot.Children[0]).GetType().FullName == controlName)
@@ -66,7 +75,6 @@ namespace ComptageVDG.Views
                     ret = false;
                 }
             }
-
             return ret;
         }
 

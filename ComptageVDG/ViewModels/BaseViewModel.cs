@@ -35,7 +35,7 @@ namespace ComptageVDG.ViewModels
                 SetProperty(ref _dateCampagne, value); 
 
                 if(test)
-                    Message.Notification("CHANGEDATE", value);
+                    MessageBrokerImpl.Instance?.Publish(this, MessageBrokerImpl.Notification("CHANGEDATE", value));
             } }
 
         private static Dictionary<string, string> listeCampagne;    
@@ -51,9 +51,7 @@ namespace ComptageVDG.ViewModels
         protected static ConnexionService? Connexion = new ConnexionService();
 
         // mettre les services en static pour les rendre accessible des View models
-        //protected static NavigationService navigationService = new NavigationService();
-
-        protected static MessagingService Message = new MessagingService();
+        protected static string currentView = string.Empty;
         protected static LoadService LoadApp = new LoadService(FullFileIni);
         protected static IServiceCampagne ServiceCampagne;
 
@@ -74,32 +72,32 @@ namespace ComptageVDG.ViewModels
         }
         protected virtual void ShowLoading(string MessageLoading)
         {
-            Message.Notification("LOADING", MessageLoading);
+            MessageBrokerImpl.Instance?.Publish(this, MessageBrokerImpl.Notification("LOADING", MessageLoading));
         }
 
         protected virtual void ClearLoading()
         {
-            Message.Notification("UNLOADING", string.Empty);
+            MessageBrokerImpl.Instance?.Publish(this,MessageBrokerImpl.Notification("UNLOADING", string.Empty));
         }
 
         protected virtual void ErrorNotif(string message)
         {
-            Message.Notification("ERRORNOTIF", message);
+            MessageBrokerImpl.Instance?.Publish(this, MessageBrokerImpl.Notification("ERRORNOTIF", message));
         }
 
         protected virtual void WarningNotif(string message)
         {
-            Message.Notification("WARNINGNOTIF", message);
+            MessageBrokerImpl.Instance?.Publish(this, MessageBrokerImpl.Notification("WARNINGNOTIF", message));
         }
 
         protected virtual void InfoNotif(string message)
         {
-            Message.Notification("INFONOTIF", message);
+            MessageBrokerImpl.Instance?.Publish(this,MessageBrokerImpl.Notification("INFONOTIF", message));
         }
 
         protected virtual void SuccessNotif(string message)
         {
-            Message.Notification("SUCCESSNOTIF", message);
+            MessageBrokerImpl.Instance?.Publish(this,MessageBrokerImpl.Notification("SUCCESSNOTIF", message));
         }
     }
 }

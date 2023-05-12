@@ -1,4 +1,5 @@
 ﻿using ComptageVDG.Helpers;
+using ComptageVDG.Helpers.Interfaces;
 using ComptageVDG.Models;
 using System;
 using System.Collections.Generic;
@@ -17,32 +18,32 @@ namespace ComptageVDG.ViewModels
 
         public NotificationVM()
         {
-            Message.Notify += Message_Notify;
+            MessageBrokerImpl.Instance.Subscribe<MessageEventArgs>(Payload);
         }
 
-        private void Message_Notify(object? sender, MessageEventArgs e)
+        private void Payload(MessagePayload<MessageEventArgs> obj)
         {
-            if (e.Sender == "ERRORNOTIF")
+            if (obj.What.Sender == "ERRORNOTIF")
             {
-                if (e.Data is string msg && !string.IsNullOrEmpty(msg))
+                if (obj.What.Data is string msg && !string.IsNullOrEmpty(msg))
                     ErrorNotif(msg);
             }
 
-            if (e.Sender == "SUCCESSNOTIF")
+            if (obj.What.Sender == "SUCCESSNOTIF")
             {
-                if (e.Data is string msg && !string.IsNullOrEmpty(msg))
+                if (obj.What.Data is string msg && !string.IsNullOrEmpty(msg))
                     SuccessNotif(msg);
             }
 
-            if (e.Sender == "WARNINGNOTIF")
+            if (obj.What.Sender == "WARNINGNOTIF")
             {
-                if (e.Data is string msg && !string.IsNullOrEmpty(msg))
+                if (obj.What.Data is string msg && !string.IsNullOrEmpty(msg))
                     WarningNotif(msg);
             }
 
-            if (e.Sender == "INFONOTIF")
+            if (obj.What.Sender == "INFONOTIF")
             {
-                if (e.Data is string msg && !string.IsNullOrEmpty(msg))
+                if (obj.What.Data is string msg && !string.IsNullOrEmpty(msg))
                     InfoNotif(msg);
             }
         }

@@ -25,25 +25,28 @@ namespace ComptageVDG.Views
         public ParcelleView()
         {
             InitializeComponent();
-            DataContext = (ParcelleVM) this.Resources["viewModel"];
+            DataContext = new ParcelleVM();
         }
 
         private void UserControl_Unloaded(object sender, RoutedEventArgs e)
         {
             if (DataContext is ParcelleVM parcelle)
+            {
                 parcelle.CloseVM();
+                DataContext = null;                
+            }
         }
 
         private void xamDataGridParcelle_DataValueChangedDirect(object sender, Infragistics.Windows.DataPresenter.Events.DataValueChangedEventArgs e)
         {
-            if (DataContext is ParcelleVM parcellevm)
-            {
-                if (e.Record.DataItem is ParcelleModel parcelle)
-                {
+            //if (DataContext is ParcelleVM parcellevm)
+            //{
+            //    if (e.Record.DataItem is ParcelleModel parcelle)
+            //    {
 
-                    parcellevm.ChangeStateCommand.Execute(e.Record.DataItem);
-                }
-            }
+            //        parcellevm.ChangeStateCommand.Execute(e.Record.DataItem);
+            //    }
+            //}
         }
 
     }
