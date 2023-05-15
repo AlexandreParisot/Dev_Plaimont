@@ -1,44 +1,24 @@
-﻿using ComptageVDG.Helpers;
-using ComptageVDG.ViewModels;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace ComptageVDG.Models
 {
-    public class ParcelleModel: INotifyPropertyChanged
+    public class ParcelleModel
     {
-
-        private bool _inCampagne;
-        public bool inCampagne { get => _inCampagne; set{
-                SetProperty(ref _inCampagne, value);
-                MessageBrokerImpl.Instance.Publish(this, MessageBrokerImpl.Notification("CHANGESTATE", this));
-            } }
+        public bool inCampagne { get; set; }
         public int id_parcelle { get; set; }
         public string ut { get; set; }
         public string nameParcelle { get; set; }
         public string nameParcelle2 { get; set; }   
         public decimal? surface { get; set; }
-        public string qualite { get; set; }
+        public string? qualite  { get; set; }
         public int? cptGlomerule { get; set; }  
         public int? cptPerforation1 { get; set; }
         public int? cptPerforation2 { get; set; }
 
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        
-        protected void SetProperty<T>(ref T oldValue, T newValue, [CallerMemberName] string name = null)
-        {
-            // Todo test egalité
-            //ancienne valeur = nouvelle valeur
-            oldValue = newValue;
-            //PropertyChanged -> nom de la propriété
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-        }
     }
 }

@@ -49,7 +49,7 @@ namespace APIComptageVDG.Provider
             return _token;
         }
 
-        public async Task<HttpResponseMessage> CallApi(string endpoint, HttpMethod http, string entetedata = "", string bodydata = "" )
+        public async Task<HttpResponseMessage> CallApi(string endpoint, HttpMethod http, string data = "" )
         {
             if(!string.IsNullOrEmpty(_token) && token.HasExpired())
                 _token = await GetToken();
@@ -57,32 +57,21 @@ namespace APIComptageVDG.Provider
             var url = $"{_apiUrl}/{endpoint}";
             var req = new HttpRequestMessage();
             req.Method = http;
-
-            if (!string.IsNullOrEmpty(entetedata))
-                url += $"?{entetedata}";
-            if (!string.IsNullOrEmpty(bodydata))
-                req.Content = new StringContent(bodydata, Encoding.UTF8, "application/json");
-
-
-            //switch (http)
-            //{
-            //    case HttpMethod m when m == HttpMethod.Post:
-            //        if (!string.IsNullOrEmpty(entetedata))
-            //            url += $"?{entetedata}";
-            //        if(!string.IsNullOrEmpty(bodydata))
-            //            req.Content = new StringContent(bodydata, Encoding.UTF8, "application/json");
-            //        break;
-            //    case HttpMethod m when m == HttpMethod.Put:
-            //        break;
-            //    case HttpMethod m when m == HttpMethod.Get:
-            //        if(!string.IsNullOrEmpty(entetedata) )
-            //            url += $"?{entetedata}";
-            //        if (!string.IsNullOrEmpty(bodydata))
-            //            req.Content = new StringContent(bodydata, Encoding.UTF8, "application/json");
-            //        break;
-            //    default:
-            //        break;
-            //}
+            switch (http)
+            {
+                case HttpMethod m when m == HttpMethod.Post:
+                    if (!string.IsNullOrEmpty(data))
+                        req.Content = new StringContent(data, Encoding.UTF8, "application/json");
+                    break;
+                case HttpMethod m when m == HttpMethod.Put:
+                    break;
+                case HttpMethod m when m == HttpMethod.Get:
+                    if(!string.IsNullOrEmpty(data) )
+                        url += $"?{data}";
+                    break;
+                default:
+                    break;
+            }
             req.RequestUri = new Uri(url);
 
 

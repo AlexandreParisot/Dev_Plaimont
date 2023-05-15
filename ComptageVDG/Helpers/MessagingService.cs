@@ -1,5 +1,4 @@
-﻿using ComptageVDG.Helpers.Interfaces;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,12 +8,7 @@ namespace ComptageVDG.Helpers
 {
     public class MessagingService
     {
-       // private static readonly object sender = new object();
-
-        private static readonly Lazy<MessagingService> lazy =
-        new Lazy<MessagingService>(() => new MessagingService());
-
-        public static MessagingService Sender => lazy.Value;
+        private static readonly object sender = new object();
 
         public event EventHandler<MessageEventArgs> Notify;
         public void Notification(string Sender, string Data, [System.Runtime.CompilerServices.CallerMemberName] string PropertyName = "")
@@ -27,20 +21,6 @@ namespace ComptageVDG.Helpers
             Notify?.Invoke(this, new MessageEventArgs(Sender, Data, PropertyName));
         }
 
-        public void UnsubscribeAll()
-        {
-            Notify -= null;
-        }
-
-        public void UnsubscribeNotif( EventHandler<MessageEventArgs> EventNotif)
-        {
-            Notify -= new EventHandler<MessageEventArgs>(EventNotif);
-        }
-
-        public void SubscribeNotif(EventHandler<MessageEventArgs> EventNotif)
-        {
-            Notify += EventNotif;
-        }
     }
 
 

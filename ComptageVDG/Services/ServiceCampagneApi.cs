@@ -147,10 +147,9 @@ namespace ComptageVDG.Services
 
         public ObservableCollection<ParcelleModel> LoadYearCampagne(string DateCampagne)
         {
-            var ListPeriode = connexionService.Instance.ExecuteQuery<ParcelleModel>("CampagneVDG/Lavilog/GetParcelles", new object[] { HttpMethod.Get, $"year={DateCampagne}" });
-               
+            var ListPeriode = new ObservableCollection<ParcelleModel>(connexionService.Instance.ExecuteQuery<ParcelleModel>("CampagneVDG/Lavilog/GetParcelles", new object[] { HttpMethod.Get, $"year={DateCampagne}" }));
 
-            return  ListPeriode == null? null : new ObservableCollection<ParcelleModel>(ListPeriode) ;
+            return ListPeriode;
         }
 
         public bool OpenParcelleCampagne(ParcelleModel parcelle, int Year)

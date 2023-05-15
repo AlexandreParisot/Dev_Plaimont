@@ -15,15 +15,15 @@
     Background="White"
     Unloaded="UserControl_Unloaded"
     mc:Ignorable="d">
-    <!--<UserControl.DataContext>
+    <UserControl.DataContext>
         <viewmodel:CampagneVM />
-    </UserControl.DataContext>-->
+    </UserControl.DataContext>
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="pack://application:,,,/Resources/DynamicStyles/DynamicStyles.xaml" />
             </ResourceDictionary.MergedDictionaries>
-            <!--<viewmodel:CampagneVM x:Key="viewModel" />-->
+            <viewmodel:CampagneVM x:Key="viewModel" />
             <converter:DebugConverter x:Key="DebugConverter" />
         </ResourceDictionary>
     </UserControl.Resources>
@@ -91,14 +91,7 @@
                     </igDP:XamDataGrid.Resources>
 
                     <igDP:XamDataGrid.FieldSettings>
-                        <igDP:FieldSettings
-                            AllowEdit="False"
-                            AllowGroupBy="true"
-                            AllowHiding="Always"
-                            AllowRecordFiltering="true"
-                            AllowSorting="true"
-                            FilterClearButtonVisibility="Visible"
-                            FilterLabelIconDropDownType="MultiSelectExcelStyle" />
+                        <igDP:FieldSettings AllowEdit="False" />
                     </igDP:XamDataGrid.FieldSettings>
 
                     <igDP:XamDataGrid.FieldLayouts>
@@ -106,30 +99,30 @@
                         <igDP:FieldLayout>
 
                             <igDP:FieldLayout.Settings>
-                                <igDP:FieldLayoutSettings AutoGenerateFields="False" />
+                                <igDP:FieldLayoutSettings  AutoGenerateFields="False" />
                             </igDP:FieldLayout.Settings>
 
                             <igDP:FieldLayout.Fields>
                                 <igDP:CheckBoxField
-                                    Name="inCampagne"
-                                    Width="20"
+                                    Name="inCampagne"                                
                                     Label=""
-                                    Visibility="Collapsed" />
-                                <igDP:NumericField
-                                    Name="id_parcelle"
-                                    Width="50"
-                                    Label="Id UT" />
+                                    Visibility="Collapsed"
+                                    Width="20"/>
+                                <igDP:NumericField Name="id_parcelle" Label="Id UT" Width="50" />
                                 <igDP:TextField Name="ut" Label="UT" />
                                 <igDP:TextField Name="nameParcelle" Label="Désignation" />
                                 <igDP:TextField Name="nameParcelle2" Label="Désignation 2" />
+                                <igDP:NumericField Name="surface" Label="Surface" Mask="#,####0" />
+                                <igDP:NumericField Name="qualite" Label="Qualite" />
                                 <igDP:NumericField
-                                    Name="surface"
-                                    Format="##0.000 ha"
-                                    Label="Surface" />
-                                <igDP:TextField Name="qualite" Label="Qualite" />
-                                <igDP:NumericField Name="cptGlomerule" Label="Glomérule" />
-                                <igDP:NumericField Name="cptPerforation1" Label="Perforation" />
-                                <igDP:NumericField Name="cptPerforation2" Label="Perforation 2" />
+                                    Name="cptGlomerule"
+                                    Label="Glomérule" />
+                                <igDP:NumericField
+                                    Name="cptPerforation1"
+                                    Label="Perforation" />
+                                <igDP:NumericField
+                                    Name="cptPerforation2"
+                                    Label="Perforation 2" />
                             </igDP:FieldLayout.Fields>
                         </igDP:FieldLayout>
                     </igDP:XamDataGrid.FieldLayouts>

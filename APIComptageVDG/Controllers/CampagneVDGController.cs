@@ -7,7 +7,6 @@ using APIComptageVDG.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Runtime.InteropServices;
-using System.Security.Policy;
 using System.Text.Json;
 
 namespace APIComptageVDG.Controllers
@@ -100,7 +99,7 @@ namespace APIComptageVDG.Controllers
 
             if (await getToken() is string token && !string.IsNullOrEmpty(token))
             {
-                var result = await _provider.CallApi("export/engagement", HttpMethod.Get, entetedata: cCommandeGet);
+                var result = await _provider.CallApi("export/engagement", HttpMethod.Get, cCommandeGet);
                 if (result.IsSuccessStatusCode)
                 {
                     var str = await result.Content.ReadAsStringAsync();
@@ -121,59 +120,6 @@ namespace APIComptageVDG.Controllers
             else
                 return BadRequest("Probléme de connexion a l'api Instagrappe.");
 
-
-        }
-
-
-        /// <summary>
-        ///  Envoi a instagrappe le fichier json des engagement cadre
-        /// </summary>
-        /// <param name="Path"></param>
-        /// <returns></returns>
-        [HttpPost("Instagrappe/Import")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<bool>> SetImportInstagrappe(string Path)
-        {
-
-            if (!System.IO.File.Exists(Path))
-                return BadRequest("le fichier n'existe pas.");
-
-            var hostSftp = _config["Instagrappe:ServeurSFTP"];
-            var userSftp = _config["Instagrappe:IdSftp"];
-            var pathSftp = "import";
-            var pwdSftp = _config["Instagrappe:MdpSftp"];
-            sFtpHelper.SetInstance(hostSftp, userSftp, pwdSftp, pathSftp);
-
-           if( await sFtpHelper.AsyncUploadFile(Path))
-            {
-                var cCommandeGet = string.Empty;
-                cCommandeGet += "file=" + System.IO.Path.GetFileName(Path);
-
-                if (await getToken() is string token && !string.IsNullOrEmpty(token))
-                {
-                    var result = await _provider.CallApi($"import/apport", HttpMethod.Post, entetedata: cCommandeGet);
-                    if (result.IsSuccessStatusCode)
-                    {
-                        var str = await result.Content.ReadAsStringAsync();
-                        if (!string.IsNullOrEmpty(str))                       
-                            return Ok(str);                       
-                        else
-                            return BadRequest(str);
-                    }
-                    else
-                    {
-                        var erreur = await result.Content.ReadAsStringAsync();
-                        Gestion.Erreur(erreur);
-                        return BadRequest(erreur);
-                    }
-                      
-                }
-                else
-                    return BadRequest("Probléme de connexion à l'api Instagrappe.");
-            }
-
-            return BadRequest("Impossible d'envoyer le fichier sur le serveur Sftp.");
 
         }
 
@@ -206,7 +152,7 @@ namespace APIComptageVDG.Controllers
 
             if (await getToken() is string token && !string.IsNullOrEmpty(token))
             {
-                var result = await _provider.CallApi("export/engagement", HttpMethod.Get,entetedata: cCommandeGet);
+                var result = await _provider.CallApi("export/engagement", HttpMethod.Get, cCommandeGet);
                 if (result.IsSuccessStatusCode)
                 {
                     var str = await result.Content.ReadAsStringAsync();
@@ -261,7 +207,7 @@ namespace APIComptageVDG.Controllers
 
             if (await getToken() is string token && !string.IsNullOrEmpty(token))
             {
-                var result = await _provider.CallApi("export/engagementCadre", HttpMethod.Get, entetedata: cCommandeGet);
+                var result = await _provider.CallApi("export/engagementCadre", HttpMethod.Get, cCommandeGet);
                 if (result.IsSuccessStatusCode)
                 {
                     var str = await result.Content.ReadAsStringAsync();
@@ -323,7 +269,7 @@ namespace APIComptageVDG.Controllers
 
             if (await getToken() is string token && !string.IsNullOrEmpty(token))
             {
-                var result = await _provider.CallApi("export/engagementCadre", HttpMethod.Get, entetedata: cCommandeGet);
+                var result = await _provider.CallApi("export/engagementCadre", HttpMethod.Get, cCommandeGet);
                 if (result.IsSuccessStatusCode)
                 {
                     var str = await result.Content.ReadAsStringAsync();
@@ -471,8 +417,8 @@ namespace APIComptageVDG.Controllers
 
             if (!_service.IsConnected)
                 return BadRequest("Aucune Connexion au serveur de base");
-            var result = await _service.AsyncGetParcellesInCampagne(year);
-            return Ok(result);
+
+            return Ok(await _service.AsyncGetParcellesInCampagne(year));
         }
     
 

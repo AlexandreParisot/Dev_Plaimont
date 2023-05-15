@@ -8,39 +8,28 @@ namespace APIComptageVDG.Helpers
 {
     public static class sFtpHelper
     {
-        private static SftpManager Instance = null;
-        
+        public static SftpManager Instance;
 
-        public static bool SetInstance(string host, string username, string password, string remotePath, int port = 22)
-        {
-
-            Instance = new SftpManager(host, port, username, password, remotePath);
-
-            if (Instance == null)
-                return false;
-            return true;
-        }
-
-        public static async Task<bool> AsyncUploadFile(string localPath)
+        public static async Task AsyncUploadFile(string localPath)
         {
             if (Instance == null)
-                return false;
+                return;
 
-          return await Task.Run(() =>
+            await Task.Run(() =>
             {
-               return  Instance.UploadFile(localPath);
+                Instance.UploadFile(localPath);
             });
         }
 
 
-        public static async Task<bool> AsyncDownLoadFile(string remoteFileName, string localPath)
+        public static async Task AsyncDownLoadFile(string remoteFileName, string localPath)
         {
             if (Instance == null)
-                return false;
+                return;
 
-           return  await Task.Run(() =>
+           await Task.Run(() =>
             {
-               return  Instance.DownloadFile(remoteFileName,  localPath);
+                Instance.DownloadFile(remoteFileName,  localPath);
             });
         }
 
@@ -56,14 +45,14 @@ namespace APIComptageVDG.Helpers
             });
         }
 
-        public static async Task<bool> Delete(string remotePath)
+        public static async Task Delete(string remotePath)
         {
             if (Instance == null)
-                return false ;
+                return ;
 
-           return  await Task.Run(() =>
+            await Task.Run(() =>
             {
-               return  Instance.Delete(remotePath);
+                Instance.Delete(remotePath);
             });
         }
 
@@ -87,11 +76,10 @@ namespace APIComptageVDG.Helpers
             _remotePath = remotePath;
         }
 
-        public bool UploadFile(string localPath)
+        public void UploadFile(string localPath)
         {
-            try
+            using (var client = new SftpClient(_host, _port, _username, _password))
             {
-                var client = new SftpClient(_host, _port, _username, _password);
                 client.Connect();
                 client.ChangeDirectory(_remotePath);
 
@@ -101,19 +89,13 @@ namespace APIComptageVDG.Helpers
                 }
 
                 client.Disconnect();
-                return true;
-            }catch(Exception ex)
-            {
-                Gestion.Erreur($"Upload File Sftp : {localPath} - {ex.Message}");
-                return false;
             }
-            
         }
 
-        public bool DownloadFile(string remoteFileName, string localPath)
+        public void DownloadFile(string remoteFileName, string localPath)
         {
-          try{
-                var client = new SftpClient(_host, _port, _username, _password);
+            using (var client = new SftpClient(_host, _port, _username, _password))
+            {
                 client.Connect();
                 client.ChangeDirectory(_remotePath);
 
@@ -123,20 +105,13 @@ namespace APIComptageVDG.Helpers
                 }
 
                 client.Disconnect();
-                return true;
-            }
-            catch(Exception ex)
-            {
-            Gestion.Erreur($"Download File Sftp local : {localPath} / remot : {remoteFileName} - {ex.Message}");
-            return false;
             }
         }
 
         public IEnumerable<SftpFile> ListDirectory(string remotePath)
         {
-            try
+            using (var client = new SftpClient(_host, _port, _username, _password))
             {
-                var client = new SftpClient(_host, _port, _username, _password);
                 client.Connect();
                 client.ChangeDirectory(remotePath);
 
@@ -145,18 +120,13 @@ namespace APIComptageVDG.Helpers
                 client.Disconnect();
 
                 return files;
-            }catch(Exception ex)
-            {
-                Gestion.Erreur($"Remote Sftp Path : {remotePath} - {ex.Message} ");
-                return null;
             }
         }
 
-        public bool Delete(string remotePath)
+        public void Delete(string remotePath)
         {
-
-            try{
-                var client = new SftpClient(_host, _port, _username, _password);
+            using (var client = new SftpClient(_host, _port, _username, _password))
+            {
                 client.Connect();
 
                 if (client.Exists(remotePath))
@@ -172,12 +142,6 @@ namespace APIComptageVDG.Helpers
                 }
 
                 client.Disconnect();
-
-                return true;
-            }catch(Exception ex)
-            {
-                Gestion.Erreur($"File Remote delete : {remotePath} - {ex.Message}");
-                return false;
             }
         }
 

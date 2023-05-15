@@ -1,6 +1,4 @@
-﻿using ComptageVDG.Helpers;
-using ComptageVDG.Helpers.Interfaces;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,36 +18,32 @@ namespace ComptageVDG.ViewModels
 
         public LoadingVM()
         {
-            MessageBrokerImpl.Instance?.Subscribe<MessageEventArgs>(Payload);
+            Message.Notify += Message_Notify;
         }
 
-        private void Payload(MessagePayload<MessageEventArgs> obj)
+        private void Message_Notify(object? sender, Helpers.MessageEventArgs e)
         {
-            if (obj.What.Sender == "LOADING")
+            if(e.Sender == "LOADING")
             {
                 Application.Current.Dispatcher.BeginInvoke(() =>
                 {
-                    if (obj.What.Data is string msg && !string.IsNullOrEmpty(msg))
+                    if (e.Data is string msg && !string.IsNullOrEmpty(msg))
                         MessageLoading = msg;
                     IsLoading = true;
                 });
-
+                
             }
 
-            if (obj.What.Sender == "UNLOADING")
+            if(e.Sender == "UNLOADING")
             {
                 Application.Current.Dispatcher.BeginInvoke(() =>
                 {
                     MessageLoading = String.Empty;
                     IsLoading = false;
                 });
-
+              
             }
-        }
 
-        public void Close()
-        {
-            MessageBrokerImpl.Instance.Unsubscribe<MessageEventArgs>(Payload);  
         }
     }
 }

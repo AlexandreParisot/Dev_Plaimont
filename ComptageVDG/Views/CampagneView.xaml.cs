@@ -24,7 +24,7 @@ namespace ComptageVDG.Views
         public CampagneView()
         {
             InitializeComponent();
-            this.DataContext = new CampagneVM(); //(CampagneVM) this.Resources["viewModel"];
+            this.DataContext = (CampagneVM) this.Resources["viewModel"];
             if (((CampagneVM)this.DataContext).ParcelleModelsinCampagne == null)
                 ((CampagneVM)this.DataContext).RefreshCommand.Execute(this);
         }
@@ -32,10 +32,7 @@ namespace ComptageVDG.Views
         private void UserControl_Unloaded(object sender, RoutedEventArgs e)
         {
             if (DataContext is CampagneVM Campage)
-            {
                 Campage.CloseVM();
-                DataContext = null;
-            }
         }
     }
 }

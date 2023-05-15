@@ -1,5 +1,4 @@
 ﻿using ComptageVDG.Helpers;
-using ComptageVDG.Helpers.Interfaces;
 using ComptageVDG.Models;
 using Infragistics.Windows.Editors;
 using Microsoft.VisualBasic;
@@ -132,7 +131,7 @@ namespace ComptageVDG.ViewModels
         public PeriodeVM()
         {
 
-            MessageBrokerImpl.Instance.Subscribe<MessageEventArgs>(Payload);
+            Message.Notify += Message_Notify;
             isDirty = false;
 
             RetourCommand = new RelayCommand(() => {
@@ -141,7 +140,7 @@ namespace ComptageVDG.ViewModels
                 else if(string.IsNullOrEmpty(DateCampagne))
                     WarningNotif($"Attention aucune période de campagne n'a été créée.{Environment.NewLine}Veuillez en créer une.");
                 else
-                    MessageBrokerImpl.Instance.Publish(this, MessageBrokerImpl.Notification("PeriodeVM", "RETOUR"));
+                    Message.Notification("PeriodeVM", "RETOUR"); 
             });
 
             RefreshCommand = new RelayCommand(()=>
@@ -172,33 +171,34 @@ namespace ComptageVDG.ViewModels
             asyncLoadPeriode(DateCampagne).GetAwaiter().OnCompleted(() => { Year = DateCampagne; ClearLoading(); });
            
         }
+                
 
-        private void Payload(MessagePayload<MessageEventArgs> obj)
+        public void CloseVM()
         {
-            if (obj.What.Sender == "CHANGEDATE")
+            Message.Notify -= Message_Notify;
+        }
+
+
+        private void Message_Notify(object? sender, MessageEventArgs e)
+        {
+            if (e.Sender == "CHANGEDATE" )
             {
-                if ((obj.What.Data is string dateCp) && !string.IsNullOrEmpty(dateCp))
+                if ((e.Data is string dateCp) && !string.IsNullOrEmpty(dateCp))
                 {
                     ShowLoading($"Chargement de la période {dateCp}");
                     asyncLoadPeriode(dateCp).GetAwaiter().OnCompleted(() => {
                         ClearLoading();
                         SynchroPeriodeInstaGrappeCommand.RaiseCanExecuteChanged();
-                    });
+                    });                    
                 }
             }
 
-            if (obj.What.Sender == "SYNCHRO")
+            if(e.Sender == "SYNCHRO")
             {
-                SynchroPeriodeInstaGrappeCommandExecute(String.Empty);
+               SynchroPeriodeInstaGrappeCommandExecute(String.Empty);
             }
+
         }
-
-        public void CloseVM()
-        {
-            MessageBrokerImpl.Instance.Unsubscribe<MessageEventArgs>(Payload);
-        }
-
-
 
         private bool SynchroPeriodeInstaGrappeCommandCanExecute(string obj)
         {

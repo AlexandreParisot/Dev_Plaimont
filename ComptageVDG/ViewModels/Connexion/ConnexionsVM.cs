@@ -15,7 +15,13 @@ namespace ComptageVDG.ViewModels.Connexion
         private string _url=string.Empty;
         
         public event EventHandler Close;
-        public string Url { get => _url; set => SetProperty(ref _url, value);}
+        public string Url { get => _url; 
+            set
+            {                
+                SetProperty(ref _url, value);
+                //Message.Notification(nameof(ConnexionsVM), value);
+            }  
+        }
         
         private string _username;
         public string Username { get => _username; set => SetProperty(ref _username, value); }

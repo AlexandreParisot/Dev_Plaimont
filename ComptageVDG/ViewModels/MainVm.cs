@@ -1,6 +1,5 @@
 ﻿using ComptageVDG.Converters;
 using ComptageVDG.Helpers;
-using ComptageVDG.Helpers.Interfaces;
 using ComptageVDG.Models;
 using ComptageVDG.Models.Map;
 using ComptageVDG.Views;
@@ -18,7 +17,7 @@ namespace ComptageVDG.ViewModels
 {
     internal class MainVm:BaseViewModel
     {
-        
+        private string currentView = string.Empty;
 
         public RelayCommand SynchroInstagrappeCommand { get; set; } 
         public RelayCommand OpenDialogConnexionCommand { get; set; }
@@ -31,9 +30,7 @@ namespace ComptageVDG.ViewModels
         public  MainVm()
         {
 
-            MessagingService.Sender?.UnsubscribeNotif( Message_Notify);
-            MessagingService.Sender?.SubscribeNotif(Message_Notify);
-            MessageBrokerImpl.Instance.Subscribe<MessageEventArgs>(PayloadMessage);
+            Message.Notify += Message_Notify;
 
             OpenDialogConnexionCommand = new RelayCommand( ()=>{               
                 DialogParameter dialogParameter = new DialogParameter();
@@ -47,12 +44,9 @@ namespace ComptageVDG.ViewModels
             
         }
 
-       
-
         public void CloseVM()
         {
-            MessagingService.Sender?.UnsubscribeNotif(Message_Notify);
-            MessageBrokerImpl.Instance.Unsubscribe<MessageEventArgs>(PayloadMessage);
+            Message.Notify -= Message_Notify;
         }
 
 
@@ -66,7 +60,7 @@ namespace ComptageVDG.ViewModels
             }
                
             if(currentView == "Periode")
-                MessagingService.Sender?.Notification("SYNCHRO",String.Empty);
+                Message.Notification("SYNCHRO",String.Empty);
             else
             {
                 ShowLoading($"Synchronisation Instagrappe pour la campagne {DateCampagne}.");
@@ -101,14 +95,12 @@ namespace ComptageVDG.ViewModels
             ShowLoading("Chargement informations campagne ...");
             if (await LoadDicoCampagne(true))
             {
-                ShowLoading($"Chargement parcelles {DateCampagne} ...");
+                ShowLoading($"Chargement parcelle {DateCampagne} ...");
                  await ServiceCampagne.asyncLoadYearCampagne(DateCampagne).ContinueWith((x) => {
-                     if (x.IsCompleted && x.Result != null)
+                    if (x.IsCompleted)
                          ParcelleModels = x.Result;
-                     else
-                         ErrorNotif($"Erreur lors du chargement des parcelles.");
                       ClearLoading();
-                });
+                }) ;
 
                 toggleView("Campagne");                
             }
@@ -120,17 +112,6 @@ namespace ComptageVDG.ViewModels
                
             
 
-        }
-
-
-        private void PayloadMessage(MessagePayload<MessageEventArgs> obj)
-        {
-            
-            if (obj.What.Data is string retour && retour == "RETOUR")
-            {
-                toggleView("Campagne");
-            }
-            
         }
 
         private  void Message_Notify(object? sender, MessageEventArgs e)

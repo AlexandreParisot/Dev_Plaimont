@@ -1,5 +1,4 @@
 ﻿using ComptageVDG.Helpers;
-using ComptageVDG.Helpers.Interfaces;
 using ComptageVDG.Models;
 using System;
 using System.Collections.Generic;
@@ -16,34 +15,42 @@ namespace ComptageVDG.ViewModels
 {
     public class CampagneVM:BaseViewModel
     {
-   
+
+
+
+        //private ObservableCollection<ParcelleModel> parcelleModels;
+        //public ObservableCollection<ParcelleModel> ParcelleModels { get => parcelleModels; set => SetProperty(ref parcelleModels , value); }
+
+        
         public string LastSynchro { get => _lastSynchro; set=> SetProperty(ref _lastSynchro,value); }
 
 
        public RelayCommand RefreshCommand { get; set; }
 
-        //public delegate void RaiseNotif(Notification Me);
-        
+
+
         public  CampagneVM()
         {
-            
+            Message.Notify += Message_Notify;
             RefreshCommand = new RelayCommand(async() => {
                 ShowLoading($"Chargement de la campagne {DateCampagne}");               
-                await asyncLoadParcelles(DateCampagne).ContinueWith(
-                    (x) => { 
-                        ClearLoading();
-                });
+                await asyncLoadParcelles(DateCampagne).ContinueWith((x) => ClearLoading());
                 await asyncGetLastSynchro();                
             });
-
-            MessageBrokerImpl.Instance.Subscribe<MessageEventArgs>(PayloadMessage);
         }
 
-        private void PayloadMessage(MessagePayload<MessageEventArgs> obj)
+        public void CloseVM()
         {
-            if (obj.What.Sender == "CHANGEDATE")
+            Message.Notify -= Message_Notify;
+        }
+
+
+        private void Message_Notify(object? sender, MessageEventArgs e)
+        {
+            
+            if (e.Sender == "CHANGEDATE")
             {
-                if ((obj.What.Data is string dateCp) && !string.IsNullOrEmpty(dateCp))
+                if ((e.Data is string dateCp) && !string.IsNullOrEmpty(dateCp))
                 {
                     ShowLoading($"Chargement de la campagne {dateCp}");
                     LoadParcelles(dateCp);
@@ -52,13 +59,6 @@ namespace ComptageVDG.ViewModels
                 }
             }
         }
-
-
-        public void CloseVM()
-        { 
-            MessageBrokerImpl.Instance.Unsubscribe<MessageEventArgs>(PayloadMessage);
-        }
-
 
 
 
