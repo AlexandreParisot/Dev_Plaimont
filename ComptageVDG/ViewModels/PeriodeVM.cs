@@ -137,7 +137,9 @@ namespace ComptageVDG.ViewModels
 
             RetourCommand = new RelayCommand(() => {
                 if (isDirty)
-                    WarningNotif($"Attention la periode de campagne {Year} a été modifiée.{Environment.NewLine}Enregistrer la modification ou actualiser la periode en cours.");
+                    WarningNotif($"Attention la période de campagne {Year} a été modifiée.{Environment.NewLine}Enregistrer la modification ou actualiser la periode en cours.");
+                else if(string.IsNullOrEmpty(DateCampagne))
+                    WarningNotif($"Attention aucune période de campagne n'a été créée.{Environment.NewLine}Veuillez en créer une.");
                 else
                     MessageBrokerImpl.Instance.Publish(this, MessageBrokerImpl.Notification("PeriodeVM", "RETOUR"));
             });

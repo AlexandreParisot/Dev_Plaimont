@@ -1,4 +1,5 @@
 ﻿using APIComptageVDG.Helpers;
+using APIComptageVDG.Services;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.SignalR;
@@ -41,6 +42,9 @@ namespace APIComptageVDG.HostServices
                 {
                     options.AddPolicy("CorsPolicy", builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader().AllowCredentials().Build());
                 });
+
+                services.AddSingleton<LavilogService>();
+
                 services.AddControllers();
               
                 services.AddHttpContextAccessor();
@@ -68,6 +72,8 @@ namespace APIComptageVDG.HostServices
 
                 services.TryAddSingleton<IActionContextAccessor, ActionContextAccessor>();
 
+                
+
             }
             catch (Exception ex)
             {
@@ -81,6 +87,9 @@ namespace APIComptageVDG.HostServices
             {
 
                 Gestion.Obligatoire($"Url API Web : {hostUrl}");
+
+                if (app.ApplicationServices.GetService(typeof(LavilogService)) is LavilogService serviceLavilog)
+                    serviceLavilog.SetConnexion(Configuration.GetConnectionString("SqlConnexion"));
 
                 // Configure the HTTP request pipeline.
                 app.UseStaticFiles(new StaticFileOptions
@@ -119,7 +128,7 @@ namespace APIComptageVDG.HostServices
 
 
 
-    public class TimedHostedService : IHostedService, IDisposable
+    public class TimedHostedService:IHostedService, IDisposable
     {
 
         private Timer _timer;
@@ -137,7 +146,15 @@ namespace APIComptageVDG.HostServices
                        configWs = new ConfigurationBuilder()
                                 .SetBasePath(Gestion.Current_Dir).AddJsonFile("appsettings.json").Build();
 
-                       webBuilder.UseContentRoot(Gestion.Current_Dir).UseKestrel().UseConfiguration(configWs).UseUrls(configWs["url"]).UseIISIntegration().UseStartup<Startup>();
+                       var app = webBuilder.UseContentRoot(Gestion.Current_Dir).UseKestrel().UseConfiguration(configWs).UseUrls(configWs["url"]);
+
+                       //init connexion string dans le service lavilog
+                       //var connectionString = app.Configure.GetConnectionString("SqlConnexion");
+                       //var serviceSql = (LavilogService)app.ConfigureServices.GetService(typeof(LavilogService));
+                       //if (serviceSql != null)
+                       //    serviceSql.SetConnexion(connectionString);
+
+                       app.UseIISIntegration().UseStartup<Startup>();
                    }
                    catch (Exception ex)
                    {

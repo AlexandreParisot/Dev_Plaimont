@@ -13,6 +13,8 @@ using ComptageVDG.Helpers;
 using System.Windows.Threading;
 using Newtonsoft.Json;
 using System.Collections;
+using System.Windows.Ink;
+using System.Windows.Markup;
 
 namespace ComptageVDG.DataAccess
 {
@@ -31,34 +33,41 @@ namespace ComptageVDG.DataAccess
         #region Methode Private 
         public  HttpResponseMessage CallApi(string endpoint, HttpMethod http, string data = "")
         {
-
-            var url = $"{_apiUrl}/{endpoint}";
-            var req = new HttpRequestMessage();
-            req.Method = http;
-            switch (http)
+            try
             {
-                case HttpMethod m when m == HttpMethod.Post:
-                    
-                    if (!string.IsNullOrEmpty(data))
-                        req.Content = new StringContent(data, Encoding.UTF8, "application/json");
-                    break;
-                case HttpMethod m when m == HttpMethod.Put:
-                    break;
-                case HttpMethod m when m == HttpMethod.Get:
-                    if (!string.IsNullOrEmpty(data))
-                        url += $"?{data}";
-                    break;
-                default:
-                    break;
+                var url = $"{_apiUrl}/{endpoint}";
+                var req = new HttpRequestMessage();
+                req.Method = http;     
+
+                switch (http)
+                {
+                    case HttpMethod m when m == HttpMethod.Post:
+                        if (!string.IsNullOrEmpty(data))
+                            req.Content = new StringContent(data, Encoding.UTF8, "application/json");
+                        break;
+                    case HttpMethod m when m == HttpMethod.Put:
+                        break;
+                    case HttpMethod m when m == HttpMethod.Get:
+                        if (!string.IsNullOrEmpty(data))
+                            url += $"?{data}";
+                        break;
+                    default:
+                        break;
+                }
+                req.RequestUri = new Uri(url);
+
+
+                using var httpClient = new HttpClient();
+                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                var result = httpClient?.Send(req);
+
+                return result;
+            }catch(Exception ex)
+            {
+                Gestion.Erreur($"endpoint : {endpoint} - entetedata : {data} - message : {ex.Message}");
+                return null;
             }
-            req.RequestUri = new Uri(url);
-
-
-            using var httpClient = new HttpClient();
-            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            var result =  httpClient.Send(req);
-
-            return result;
+           
         }
         #endregion region
 
@@ -115,15 +124,15 @@ namespace ComptageVDG.DataAccess
 
 
                 var result = CallApi(query, _httpMethod, cCommandeGet);
-                    if (result.IsSuccessStatusCode)
-                {
+                 if (result!=null && result.IsSuccessStatusCode)
+                    {
                     var str = result.Content.ReadAsStringAsync().GetAwaiter().GetResult();
                     if (!string.IsNullOrEmpty(str))
                     {
                         var tab = JsonSerialize.Deserialize<IEnumerable<int>>(str);
                         return tab.Count();
                     }                       
-                }
+                    }
                 else
                     return -1;
 
@@ -257,7 +266,7 @@ namespace ComptageVDG.DataAccess
 
 
                 var result = CallApi(query, _httpMethod, cCommandeGet);
-                if (result.IsSuccessStatusCode)
+                if (result != null && result.IsSuccessStatusCode)
                 {
                     var str = result.Content.ReadAsStringAsync().GetAwaiter().GetResult();
                     if (!string.IsNullOrEmpty(str))
@@ -272,7 +281,11 @@ namespace ComptageVDG.DataAccess
               
                 }
                 else
+                {
+                   
                     return null;
+                }
+                    
 
                 return Enumerable.Empty<T>();
             }

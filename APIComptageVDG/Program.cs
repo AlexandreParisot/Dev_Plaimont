@@ -8,6 +8,9 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Runtime;
 using System.ServiceProcess;
+using APIComptageVDG.Services;
+using System.Configuration;
+using static Org.BouncyCastle.Math.EC.ECCurve;
 
 System.IO.Directory.SetCurrentDirectory(System.AppDomain.CurrentDomain.BaseDirectory);
 
@@ -67,6 +70,10 @@ else if (args.Length > 0 && args[0].ToLower().Contains("/console"))
 
     
     var builder = WebApplication.CreateBuilder(args);
+    
+    // Ajoute des service utile pour les controller
+   // builder.Services.AddSingleton<LavilogService>();
+    
     // Add services to the container.
     builder.Services.AddControllers();
     // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -107,6 +114,14 @@ else if (args.Length > 0 && args[0].ToLower().Contains("/console"))
 
     var url = app.Configuration["url"];
     Gestion.Obligatoire($"Url API Web : {url}");
+
+
+    //init connexion string dans le service lavilog
+    //var connectionString = app.Configuration.GetConnectionString("SqlConnexion");
+    
+    //if (app.Services.GetService(typeof(LavilogService)) is LavilogService serviceSql)
+    //    serviceSql.SetConnexion(connectionString);
+
 
     // Configure the HTTP request pipeline.
     app.UseStaticFiles(new StaticFileOptions

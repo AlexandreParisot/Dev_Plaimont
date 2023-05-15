@@ -17,14 +17,21 @@ namespace APIComptageVDG.Controllers
     public class CampagneVDGController : Controller
     {
         private InstagrappeApiProvider _provider;
-        private LavilogService _service = new LavilogService();
+        private LavilogService _service;
 
         private IConfiguration _config;
         public CampagneVDGController(IConfiguration config)
         {
             _config = config;
-            if (!string.IsNullOrEmpty(_config["SqlConnexion"]))
-                _service.SetConnexion(_config["SqlConnexion"]!);
+            //_service = service;
+            if (!string.IsNullOrEmpty(_config.GetConnectionString("SqlConnexion")))
+            {
+                if (_service == null)
+                    _service = new LavilogService();
+
+                _service.SetConnexion(_config.GetConnectionString("SqlConnexion")!);
+            }
+               
         }
 
 

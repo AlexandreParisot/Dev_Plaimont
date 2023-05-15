@@ -47,7 +47,8 @@ namespace APIComptageVDG.Services
             if (connection == null)
                 throw new ArgumentNullException("La connexion est null.");
 
-            connection.ConnectionString = connexionString;
+            if(connection.State != ConnectionState.Open)
+                connection.ConnectionString = connexionString;
         }
 
 
