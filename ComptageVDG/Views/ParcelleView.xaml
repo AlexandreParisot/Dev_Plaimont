@@ -15,9 +15,9 @@
     Background="White"
     Unloaded="UserControl_Unloaded"
     mc:Ignorable="d">
-    <UserControl.DataContext>
+    <!--<UserControl.DataContext>
         <viewmodel:ParcelleVM />
-    </UserControl.DataContext>
+    </UserControl.DataContext>-->
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -26,7 +26,7 @@
 
             <SolidColorBrush x:Key="GreenBrush" Color="#FF9FB328" />
             <SolidColorBrush x:Key="RedBrush" Color="#FFDC3F76" />
-            <viewmodel:ParcelleVM x:Key="viewModel" />
+            <!--<viewmodel:ParcelleVM x:Key="viewModel" />-->
             <converter:DebugConverter x:Key="DebugConverter" />
             <converter:ComboDictionary x:Key="ComboYears" />
         </ResourceDictionary>
@@ -116,14 +116,13 @@
                 Name="xamDataGridParcelle"
                 AutoFit="True"
                 DataSource="{Binding ParcelleModels}"
-                DataValueChangedDirect="xamDataGridParcelle_DataValueChangedDirect"
-                SelectedDataItem="{Binding CurrentParcelle}">
+                DataValueChangedDirect="xamDataGridParcelle_DataValueChangedDirect">
 
                 <igDP:XamDataGrid.Resources>
                     <Style TargetType="{x:Type igEditors:XamNumericEditor}">
                         <Setter Property="Foreground" Value="#000" />
                     </Style>
-                   
+
                     <!--<Style TargetType="{x:Type igDP:RecordSelector}"
                        BasedOn="{x:Null}">
                         <Setter Property="Template">
@@ -162,17 +161,22 @@
                         </Setter>
                     </Style>-->
                 </igDP:XamDataGrid.Resources>
-                <igDP:XamDataGrid.FieldSettings>                    
+                <igDP:XamDataGrid.FieldSettings>
                     <igDP:FieldSettings
-                        AllowEdit="False"                        
+                        AllowEdit="False"
                         AllowHiding="Always"
                         AllowRecordFiltering="true"
                         FilterLabelIconDropDownType="MultiSelectExcelStyle" />
                 </igDP:XamDataGrid.FieldSettings>
 
                 <igDP:XamDataGrid.FieldLayouts>
-                    
+
                     <igDP:FieldLayout>
+
+                        <igDP:FieldLayout.SummaryDefinitions>
+                            <igDP:SummaryDefinition Calculator="{x:Static igDP:SummaryCalculator.Sum}" SourceFieldName="inCampagne" />
+                        </igDP:FieldLayout.SummaryDefinitions>
+
                         <igDP:FieldLayout.Settings>
                             <igDP:FieldLayoutSettings
                                 AutoGenerateFields="False"
@@ -185,10 +189,10 @@
                                 Name="inCampagne"
                                 Width="20"
                                 AllowEdit="true"
-                                IsReadOnly="False"                                
-                                Label="">                               
-                                <igDP:Field.Settings>                                    
-                                    <igDP:FieldSettings DataValueChangedNotificationsActive="true" />
+                                IsReadOnly="{Binding Path=DataContext.IsRead, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=false, Converter={StaticResource DebugConverter}}"
+                                Label="">
+                                <igDP:Field.Settings>
+                                    <igDP:FieldSettings DataItemUpdateTrigger="OnCellValueChange" DataValueChangedNotificationsActive="true" />
                                 </igDP:Field.Settings>
                             </igDP:CheckBoxField>
                             <igDP:NumericField
@@ -200,9 +204,9 @@
                             <igDP:TextField Name="nameParcelle2" Label="Désignation 2" />
                             <igDP:NumericField
                                 Name="surface"
-                                Label="Surface"
-                                Mask="#,###" />
-                            <igDP:NumericField Name="qualite" Label="Qualite" />
+                                Format="##0.000 ha"
+                                Label="Surface" />
+                            <igDP:TextField Name="qualite" Label="Qualite" />
                             <igDP:NumericField
                                 Name="cptGlomerule"
                                 Label="Glomérule"

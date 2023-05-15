@@ -25,8 +25,8 @@ namespace ComptageVDG.Views
         public PeriodeView()
         {
             InitializeComponent();
-            
-            DataContext = (PeriodeVM)this.Resources["viewModel"];;
+
+            DataContext = new PeriodeVM(); // (PeriodeVM)this.Resources["viewModel"];;
         }
 
         private void UserControl_Unloaded(object sender, RoutedEventArgs e)
@@ -39,6 +39,7 @@ namespace ComptageVDG.Views
                         Periode.SaveCommand.Execute(null);
                 }
                 Periode.CloseVM();
+                DataContext = null;
             }
                 
         }
