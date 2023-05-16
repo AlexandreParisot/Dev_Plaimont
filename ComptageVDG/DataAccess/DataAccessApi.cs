@@ -236,10 +236,7 @@ namespace ComptageVDG.DataAccess
             catch (Exception ex)
             {
                 Gestion.Erreur(ex.Message);
-                Type type = typeof(T);
-                object instance = Activator.CreateInstance(type);
-                return (T)instance;
-
+                return default(T);
             }
         }
 

@@ -32,7 +32,9 @@ namespace ComptageVDG.ViewModels
                 await asyncLoadParcelles(DateCampagne).ContinueWith(
                     (x) => { 
                         ClearLoading();
-                });
+                        if (ParcelleModelsinCampagne != null && ParcelleModelsinCampagne.Count > 0)
+                            InfoNotif($"Nombre de parcelle au comptage : {ParcelleModelsinCampagne.Count}");
+                    });
                 await asyncGetLastSynchro();                
             });
 
@@ -51,6 +53,7 @@ namespace ComptageVDG.ViewModels
                     ClearLoading();
                 }
             }
+
         }
 
 

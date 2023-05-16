@@ -7,6 +7,11 @@
         public string? ut { get; set; }
         public string? nameParcelle { get; set; }
         public string? nameParcelle2 { get; set; }
+        public string? propriete { get; set; }  
+        public string? appellation { get; set; }
+        public string? cepage { get; set; }
+        public string? technique { get; set; }
+        public string? vendange { get; set; }  
         public decimal? surface { get; set; }
         public string? qualite { get; set; }
         public int? cptGlomerule { get; set; }

@@ -17,12 +17,18 @@ namespace ComptageVDG.Models
         private bool _inCampagne;
         public bool inCampagne { get => _inCampagne; set{
                 SetProperty(ref _inCampagne, value);
-                MessageBrokerImpl.Instance.Publish(this, MessageBrokerImpl.Notification("CHANGESTATE", this));
+                if(id_parcelle > 0 && !string.IsNullOrEmpty(ut))
+                    MessageBrokerImpl.Instance.Publish(this, MessageBrokerImpl.Notification("CHANGESTATE", this));
             } }
         public int id_parcelle { get; set; }
         public string ut { get; set; }
         public string nameParcelle { get; set; }
-        public string nameParcelle2 { get; set; }   
+        public string nameParcelle2 { get; set; }
+        public string? propriete { get; set; }
+        public string? appellation { get; set; }
+        public string? cepage { get; set; }
+        public string? technique { get; set; }
+        public string? vendange { get; set; }
         public decimal? surface { get; set; }
         public string qualite { get; set; }
         public int? cptGlomerule { get; set; }  

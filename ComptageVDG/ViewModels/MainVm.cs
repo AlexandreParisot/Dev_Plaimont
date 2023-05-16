@@ -30,9 +30,6 @@ namespace ComptageVDG.ViewModels
 
         public  MainVm()
         {
-
-            MessagingService.Sender?.UnsubscribeNotif( Message_Notify);
-            MessagingService.Sender?.SubscribeNotif(Message_Notify);
             MessageBrokerImpl.Instance.Subscribe<MessageEventArgs>(PayloadMessage);
 
             OpenDialogConnexionCommand = new RelayCommand( ()=>{               
@@ -51,7 +48,6 @@ namespace ComptageVDG.ViewModels
 
         public void CloseVM()
         {
-            MessagingService.Sender?.UnsubscribeNotif(Message_Notify);
             MessageBrokerImpl.Instance.Unsubscribe<MessageEventArgs>(PayloadMessage);
         }
 
@@ -101,25 +97,59 @@ namespace ComptageVDG.ViewModels
             ShowLoading("Chargement informations campagne ...");
             if (await LoadDicoCampagne(true))
             {
-                ShowLoading($"Chargement parcelles {DateCampagne} ...");
-                 await ServiceCampagne.asyncLoadYearCampagne(DateCampagne).ContinueWith((x) => {
-                     if (x.IsCompleted && x.Result != null)
-                         ParcelleModels = x.Result;
-                     else
-                         ErrorNotif($"Erreur lors du chargement des parcelles.");
-                      ClearLoading();
-                });
+                if (DateCampagne != DateTime.Today.ToString("yyyy"))
+                {
+                    ShowLoading($"Création de la période {DateTime.Today.ToString("yyyy")}...");
 
-                toggleView("Campagne");                
+                    await CreationPeriodeAnneeCourrante().ContinueWith((x) => {
+                        if (x.IsCompleted && x.IsFaulted)
+                            ErrorNotif($"Erreur lors de la creation de la période {DateTime.Today.ToString("yyyy")}");
+                    });
+                }                
+                   await LoadParcelle(DateCampagne);
+                    toggleView("Campagne");
             }
             else
             {
-                ClearLoading();
-                toggleView("Periode");
-            }
-               
-            
+               ShowLoading($"Création de la période {DateTime.Today.ToString("yyyy")}...");
+               await CreationPeriodeAnneeCourrante().ContinueWith((x) => {
+                   if (x.IsCompleted && x.IsFaulted)
+                       ErrorNotif($"Erreur lors de la creation de la période {DateTime.Today.ToString("yyyy")}");
+               });
 
+
+                await LoadParcelle(DateCampagne);
+                toggleView("Campagne");
+            }
+        }
+
+        private async Task LoadParcelle(string date)
+        {
+
+            ShowLoading($"Chargement parcelles {date} ...");
+            ParcelleModels = await ServiceCampagne.asyncLoadYearCampagne(date);
+            if (ParcelleModels == null)
+                ErrorNotif($"Erreur lors du chargement des parcelles.");
+
+            ClearLoading();
+                   
+        }
+
+        private async Task<bool> CreationPeriodeAnneeCourrante()
+        {
+                        
+            var listePeriodes = new List<PeriodeModel>() { 
+                new PeriodeModel() { Year= int.Parse(DateTime.Today.ToString("yyyy")), Name = "Glomerule"}
+                ,new PeriodeModel() { Year= int.Parse(DateTime.Today.ToString("yyyy")), Name = "Perforation"}
+                ,new PeriodeModel() { Year= int.Parse(DateTime.Today.ToString("yyyy")), Name = "Perforation2"}};
+
+            if (await ServiceCampagne.asyncSetPeriodeCampagne(listePeriodes, DateTime.Today.ToString("yyyy")))
+            {
+                ListeCampagne.Add(DateTime.Today.ToString("yyyy"), $"Campagne {DateTime.Today.ToString("yyyy")}");
+                DateCampagne = ListeCampagne.Last().Key;
+            } else
+                return false;
+            return true;
         }
 
 
@@ -130,21 +160,24 @@ namespace ComptageVDG.ViewModels
             {
                 toggleView("Campagne");
             }
-            
-        }
 
-        private  void Message_Notify(object? sender, MessageEventArgs e)
-        {
-            if( e.Data is string retour && retour == "RETOUR")
+            if(obj.Who is MainView view && obj.What.Sender == "TOGGLEVIEW" && obj.What.Data is string strview)
             {
-                toggleView("Campagne");
+                toggleView(strview);
             }
 
-            if(e.Data is string load && load == "CHARGEVIEW")
+
+            if (obj.What.Data is string load && load == "CHARGEVIEW")
             {
                 LoadMainView();
             }
         }
+
+        //private  void Message_Notify(object? sender, MessageEventArgs e)
+        //{
+           
+
+        //}
 
         private void toggleView(string View)
         {
@@ -168,7 +201,7 @@ namespace ComptageVDG.ViewModels
 
         private void UcLoad(string? nameUc)
         {
-            Dispatcher.CurrentDispatcher.BeginInvoke(() => LoadUC?.Invoke(nameUc, EventArgs.Empty) );
+            Dispatcher.CurrentDispatcher.BeginInvoke(() => LoadUC?.Invoke(nameUc, EventArgs.Empty),DispatcherPriority.Loaded);
         }
     }
 }

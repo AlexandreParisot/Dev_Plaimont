@@ -13,6 +13,8 @@ namespace ComptageVDG.ViewModels
     public class ParcelleVM:BaseViewModel
     {
 
+        private bool isDirty = false;
+
         private bool isRead;
         public bool IsRead { get => isRead; set => SetProperty(ref isRead, value); }
        // public RelayCommand OpenCampagneCommand { get; set; }
@@ -26,8 +28,9 @@ namespace ComptageVDG.ViewModels
         {
             MessageBrokerImpl.Instance.Subscribe<MessageEventArgs>(PayloadMessage);
 
-            RetourCommand = new RelayCommand(() => { 
-               
+            RetourCommand = new RelayCommand(() => {
+                if (isDirty)
+                    ParcelleModelsinCampagne = null;
                 MessageBrokerImpl.Instance.Publish(this, MessageBrokerImpl.Notification("ParcelleVM", "RETOUR"));
                 
             });
@@ -110,7 +113,12 @@ namespace ComptageVDG.ViewModels
             if (parcelle == null)
                 return;
             if (!await ServiceCampagne.asyncOpenParcelleCampagne(parcelle, int.Parse(DateCampagne)))
-                ErrorNotif($"Une erreur s'est produite,pour l'ouverture de la parcelle {parcelle.nameParcelle} au comptage.");
+            {
+                parcelle.inCampagne = parcelle.inCampagne ? false : true;
+                ErrorNotif($"Une erreur s'est produite, pour l'ouverture de la parcelle {parcelle.nameParcelle} au comptage.");
+            }else
+                isDirty = true;
+               
         }
 
         private async Task asyncLoadParcelles(string dateCp)

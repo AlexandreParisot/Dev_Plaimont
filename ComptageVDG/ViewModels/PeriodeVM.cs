@@ -44,27 +44,31 @@ namespace ComptageVDG.ViewModels
             { 
                 SetProperty(ref datedebGlomerule, value);
                 controleDate(datedebGlomerule, Glomerule, true);
-                if(DatedebGlomerule > DatefinGlomerule)
-                    DatefinGlomerule = DatedebGlomerule.Value.AddDays(7);
+                if(datedebGlomerule > datefinGlomerule && datedebGlomerule.HasValue && !datefinGlomerule.HasValue)
+                    DatefinGlomerule = datedebGlomerule!.Value.AddDays(7);
             } }
         public DateTime? DatefinGlomerule { get => datefinGlomerule; set
             {
                 SetProperty(ref datefinGlomerule, value);
                 controleDate(datefinGlomerule, Glomerule, false);
+                if (datedebGlomerule > datefinGlomerule && datedebGlomerule.HasValue && !datefinGlomerule.HasValue)
+                    DatefinGlomerule = DateTime.Today;
             }
         }
         public DateTime? DatedebPerforation { get => datedebPerforation; set
             {
                 SetProperty(ref datedebPerforation, value);
                 controleDate(datedebPerforation, Perforation, true);
-                if (DatedebPerforation > DatefinPerforation)
-                    DatefinPerforation = DatedebPerforation!.Value.AddDays(7);
+                if (DatedebPerforation > DatefinPerforation && datedebPerforation.HasValue && !DatefinPerforation.HasValue)
+                    DatefinPerforation = datedebPerforation!.Value.AddDays(7);
             }
         }
         public DateTime? DatefinPerforation { get => datefinPerforation; set
             {
                 SetProperty(ref datefinPerforation, value);
-                controleDate(datefinPerforation!, Perforation, false);  
+                controleDate(datefinPerforation!, Perforation, false);
+                if (DatedebPerforation > DatefinPerforation && datedebPerforation.HasValue && !DatefinPerforation.HasValue)
+                    DatefinGlomerule = DateTime.Today;
             }
         }
         public DateTime? DatedebPerforation2
@@ -73,7 +77,7 @@ namespace ComptageVDG.ViewModels
             {
                 SetProperty(ref datedebPerforation2, value);
                 controleDate(datedebPerforation2, Perforation, true);
-                if (DatedebPerforation2 > DatefinPerforation2)
+                if (DatedebPerforation2 > DatefinPerforation2 && datedebPerforation2.HasValue && !DatefinPerforation2.HasValue)
                     DatefinPerforation2 = DatedebPerforation2!.Value.AddDays(7);
 
             }
@@ -82,6 +86,8 @@ namespace ComptageVDG.ViewModels
             {
                 SetProperty(ref datefinPerforation2, value);
                 controleDate(datefinPerforation2,Perforation2,false);
+                if (DatedebPerforation2 > DatefinPerforation2 && datedebPerforation2.HasValue && !DatefinPerforation2.HasValue)
+                    DatefinPerforation2 = DateTime.Today;
             }
 
         }
@@ -126,7 +132,7 @@ namespace ComptageVDG.ViewModels
         public RelayCommand RetourCommand { get; set; }
         public RelayCommand RefreshCommand { get; set; }
         public RelayCommand SaveCommand { get; set; }
-        public RelayCommand AjoutCommand { get; set; }
+        //public RelayCommand AjoutCommand { get; set; }
         public RelayCommand<string> SynchroPeriodeInstaGrappeCommand { get; set; }
 
         public PeriodeVM()
@@ -156,15 +162,25 @@ namespace ComptageVDG.ViewModels
                 await asyncSavePeriode().ContinueWith((x) => { ClearLoading(); }); 
             }, ()=> !string.IsNullOrEmpty(Year) && Year == DateTime.Today.ToString("yyyy"));
 
-            AjoutCommand = new RelayCommand( () =>
-            {
-                isDirty = true;
-                Year = DateTime.Today.ToString("yyyy");
-                DatedebGlomerule = DatedebPerforation = DatedebPerforation2 = DateTime.Today;
-                DatefinGlomerule = DatefinPerforation = DatefinPerforation2 = DateTime.Today;                
-                IsReadGlomerule = IsReadPerforation = IsReadPerforation2 = false;
-                PeriodeModels = new ObservableCollection<PeriodeModel>();                
-            }, () => ListeCampagne != null && !ListeCampagne.ContainsKey(DateTime.Today.ToString("yyyy")));
+            //AjoutCommand = new RelayCommand( () =>
+            //{
+            //    isDirty = true;
+            //    Year = DateTime.Today.ToString("yyyy");
+            //    //DatedebGlomerule = DatedebPerforation = DatedebPerforation2 = DateTime.Today;
+            //    //DatefinGlomerule = DatefinPerforation = DatefinPerforation2 = DateTime.Today;                
+            //    IsReadGlomerule = IsReadPerforation = IsReadPerforation2 = false;
+            //    PeriodeModels = new ObservableCollection<PeriodeModel>();
+            //    if (!ListeCampagne.ContainsKey(DateTime.Today.ToString("yyyy")))
+            //    {
+
+            //        SaveCommand.Execute(null);
+            //        ListeCampagne  = ServiceCampagne.asyncDicoCampagne().GetAwaiter().GetResult();
+            //        if(ListeCampagne != null && ListeCampagne.ContainsKey(Year))
+            //        {
+            //            DateCampagne = Year;
+            //        }
+            //    }
+            //}, () => ListeCampagne != null && !ListeCampagne.ContainsKey(DateTime.Today.ToString("yyyy")));
 
 
             SynchroPeriodeInstaGrappeCommand = new RelayCommand<string>(SynchroPeriodeInstaGrappeCommandExecute, SynchroPeriodeInstaGrappeCommandCanExecute);
@@ -244,16 +260,26 @@ namespace ComptageVDG.ViewModels
                     if (DatedebGlomerule != null && DatefinGlomerule != null && DatedebGlomerule < DatefinGlomerule)
                     {
                         var glome = PeriodeModels.FirstOrDefault((x)=> x.Name.ToLower() == Glomerule.ToLower());
-                        if(glome?.DateDebut != DatedebGlomerule && DatedebGlomerule > DateTime.Today)
+                        if (glome == null)
                         {
-                            glome!.DateDebut = DatedebGlomerule.Value; 
-                            isDirty = true;
+                            ErrorNotif($"La période pour les glomérules n'existe pas en base. Voir avec votre administrateur systéme.");
+                            return;
                         }
-                        if (glome?.DateFin != DatefinGlomerule && DatefinGlomerule > DateTime.Today)
+                        else
                         {
-                            glome!.DateFin = DatefinGlomerule.Value;
-                            isDirty = true;
+                           
+                            if (glome?.DateDebut != DatedebGlomerule && DatedebGlomerule > DateTime.Today)
+                            {
+                                glome!.DateDebut = DatedebGlomerule.Value;
+                                isDirty = true;
+                            }
+                            if (glome?.DateFin != DatefinGlomerule && DatefinGlomerule > DateTime.Today)
+                            {
+                                glome!.DateFin = DatefinGlomerule.Value;
+                                isDirty = true;
+                            }
                         }
+                        
                     }
                     else if( DatedebGlomerule == null || DatefinGlomerule == null)
                     {
@@ -274,16 +300,25 @@ namespace ComptageVDG.ViewModels
                     if (DatedebPerforation != null && DatefinPerforation != null)
                     {
                         var perfo = PeriodeModels.FirstOrDefault((x) => x.Name.ToLower() == Perforation.ToLower());
-                        if (perfo?.DateDebut != DatedebPerforation && DatedebPerforation > DateTime.Today)
+                        if (perfo == null)
                         {
-                            perfo!.DateDebut = DatedebPerforation.Value;
-                            isDirty = true;
-                        }                           
-                        if (perfo?.DateFin != DatefinPerforation && DatefinPerforation > DateTime.Today)
-                        {
-                            perfo!.DateFin = DatefinPerforation.Value;
-                            isDirty = true;
+                            ErrorNotif($"La période pour le comptage des perforations n'existe pas en base. Voir avec votre administrateur systéme.");
+                            return;
                         }
+                        else {
+                            if (perfo?.DateDebut != DatedebPerforation && DatedebPerforation > DateTime.Today)
+                            {
+                                perfo!.DateDebut = DatedebPerforation.Value;
+                                isDirty = true;
+                            }
+
+                            if (perfo?.DateFin != DatefinPerforation && DatefinPerforation > DateTime.Today)
+                            {
+                                perfo!.DateFin = DatefinPerforation.Value;
+                                isDirty = true;
+                            }
+                        }
+                        
                     }
                     else if (DatedebPerforation == null || DatefinPerforation == null)
                     {
@@ -302,16 +337,24 @@ namespace ComptageVDG.ViewModels
                     if (DatedebPerforation2 != null && DatefinPerforation2 != null)
                     {
                         var perfo2= PeriodeModels.FirstOrDefault((x) => x.Name.ToLower() == Perforation2.ToLower());
-                        if (perfo2?.DateDebut != DatedebPerforation2 && DatedebPerforation2 > DateTime.Today)
+                        if (perfo2 == null)
                         {
-                            perfo2!.DateDebut = DatedebPerforation2.Value;
-                            isDirty = true;
+                            ErrorNotif($"La période pour le comptage des perforations 2 n'existe pas en base. Voir avec votre administrateur systéme.");
+                            return;
                         }
-                            
-                        if (perfo2?.DateFin != DatefinPerforation2 && DatefinPerforation2 > DateTime.Today)
+                        else
                         {
-                            perfo2!.DateFin = DatefinPerforation2.Value;
-                            isDirty = true;
+                            if (perfo2?.DateDebut != DatedebPerforation2 && DatedebPerforation2 > DateTime.Today)
+                            {
+                                perfo2!.DateDebut = DatedebPerforation2.Value;
+                                isDirty = true;
+                            }                            
+
+                            if (perfo2?.DateFin != DatefinPerforation2 && DatefinPerforation2 > DateTime.Today)
+                            {
+                                perfo2!.DateFin = DatefinPerforation2.Value;
+                                isDirty = true;
+                            }
                         }
                             
                     }
@@ -363,6 +406,26 @@ namespace ComptageVDG.ViewModels
 
                 if (string.IsNullOrEmpty(message) && PeriodeModels!.Count == 3 && isDirty)
                 {
+
+                    if (DatedebGlomerule > DatefinGlomerule || (datedebGlomerule.HasValue && !datefinGlomerule.HasValue))
+                    {
+                        WarningNotif($"La date de fin de comptage des glomérules ne peut être inferieure à la date de début.");
+                        return;
+                    }
+
+                    if (DatedebPerforation > DatefinPerforation || (datedebPerforation.HasValue && !DatefinPerforation.HasValue))
+                    {
+                        WarningNotif($"La date de fin du premier comptage des perforations ne peut être inferieure à la date de début.");
+                        return;
+                    }
+
+                    if (DatedebPerforation > DatefinPerforation || (datedebPerforation2.HasValue && !datefinPerforation2.HasValue))
+                    {
+                        WarningNotif($"La date de fin du second comptage des perforations ne peut être inferieure à la date de début.");
+                        return;
+                    }
+
+
                     var success = await ServiceCampagne.asyncSetPeriodeCampagne(PeriodeModels, Year);
                     if (!success)
                     {
@@ -445,7 +508,7 @@ namespace ComptageVDG.ViewModels
             }
 
             SynchroPeriodeInstaGrappeCommand.RaiseCanExecuteChanged();
-            AjoutCommand.RaiseCanExecuteChanged();
+            //AjoutCommand.RaiseCanExecuteChanged();
             isDirty = false;
 
             if (int.Parse(dateCp) < DateAndTime.Year(DateTime.Today))

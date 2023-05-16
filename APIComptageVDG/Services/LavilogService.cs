@@ -32,6 +32,11 @@ namespace APIComptageVDG.Services
                         return true;
                     else return false;
                 }
+                catch(Exception ex)
+                {
+                    Gestion.Erreur(ex.Message);
+                    return false;
+                }
                 finally
                 {
                     connection.Close(); 
@@ -177,13 +182,14 @@ namespace APIComptageVDG.Services
                         if (!string.IsNullOrEmpty(portailParametre.Valeur.Trim()))
                         {
                             periodeModel.DateDebut = DateTime.ParseExact(portailParametre.Valeur!.Split(" ").ToArray()[0].Trim(), "dd/MM/yyyy", null);
-                            periodeModel.DateFin = DateTime.ParseExact(portailParametre.Valeur!.Split(" ").ToArray()[1].Trim(), "dd/MM/yyyy", null);
+                            if (!string.IsNullOrEmpty(portailParametre.Valeur.Trim()) && portailParametre.Valeur!.Split(" ").Count() == 2  )
+                                periodeModel.DateFin = DateTime.ParseExact(portailParametre.Valeur!.Split(" ").ToArray()[1].Trim(), "dd/MM/yyyy", null);
                         }
 
                         periodes.Add(periodeModel);
                     }catch(Exception ex)
                     {
-                        Gestion.Erreur($"Erreur sur la recuperation de la période {year}. {ex.Message}");
+                        Gestion.Erreur($"Erreur sur la recuperation de la période {year} - {portailParametre.Codlib2} - {portailParametre.Valeur} / {ex.Message}");
                     }
                 }
             }
@@ -264,18 +270,14 @@ namespace APIComptageVDG.Services
                 var result = new List<ParcelleModel>();
 
                 var req = @$" 
-                   select CASE tN.Note_Valeur 
-						WHEN '2023' THEN 'true'
-						ELSE 'false'
-					end inCampagne
-                    , UT.ID_vUniteTravail as id_parcelle 
+                     select  UT.ID_vUniteTravail as id_parcelle 
                    , UT.UniteTravail_Code ut 
                    , UT.UniteTravail_Libelle  nameParcelle                                                                                                                                  
                    , UT.UniteTravail_Libelle2 nameParcelle2                                                                                                                                 
-                  -- , P.Propriete_Libelle                                                                                                                                                    
-                  -- , P.ID_vPropriete                                                                                                                                                        
-                  -- , NOTE.[Note : Appellation de travail] Appellation                                                                                                                        
-                 --  , TMP.Travail_CepageMajoritaire Cepage                                                                                                                                   
+                   , P.Propriete_Libelle  propriete                                                                                                                                                  
+                  -- , P.ID_vPropriete                                                                                                                                                         
+                   , NOTE.[Note : Appellation de travail] appellation                                                                                                                        
+                   , TMP.Travail_CepageMajoritaire cepage                                                                                                                                   
                    , CASE WHEN NOTE.[Note : Site de vendange] <> 'CONDOM' THEN                                                                                                               
                                                                                                   (SELECT TOP 1 O2.[Qualité de classement]                                                  
                                                                                                   FROM vObservation O2                                                                      
@@ -301,21 +303,27 @@ namespace APIComptageVDG.Services
                   -- , NOTE.[Note : Vendanges - Totalement vendangée] TotalementVendangee                                                                                                      
                    , TMP.Travail_Superficie surface                                                                                                                                         
                   -- , SUM(R.Recolte_Superficie) as SuperficieVendangee                                                                                                                       
-                  -- , SUM(R.Recolte_Poids) as PoidsVendange   
+                  -- , SUM(R.Recolte_Poids) as PoidsVendange  
+				  ,ut.UniteTravail_Site technique
+				  , NOTE.[Note : Site de vendange] vendange
+				  ,CASE tN.Note_Valeur 
+						WHEN '{year}' THEN 'true'
+						ELSE 'false'
+					end inCampagne
 				  , null cptGlomerule
 				  , null cptPerforation1 
 				  , null cptPerforation2
-    from dbo.vUniteTravail UT                                                                                                                                                               
+    from [LAVILOG_TEST_M3].dbo.vUniteTravail UT                                                                                                                                                               
                    inner join dbo.vPropriete P on P.ID_vPropriete = UT.ID_vPropriete                                                                                                        
                    inner join dbo.pTmpTravailCompoColonne TMP on TMP.ID_vUniteTravail = UT.ID_vUniteTravail                                                                                 
                    left  join dbo.pTmpNoteColonne_vUniteTravail NOTE ON NOTE.ID_Target = UT.ID_vUniteTravail                                                                                
                    left  join dbo.vRecolte R on R.ID_vUniteTravail = UT.ID_vUniteTravail and year(R.Recolte_Date) = year(getdate()) 
-				   inner join dbo.tNote tN on  tN.ID_Target = UT.ID_vUniteTravail and tN.Note_Categorie = 'CVDG' and tN.Note_Valeur = '{year}'
+				   inner  join dbo.tNote tN on  tN.ID_Target = UT.ID_vUniteTravail and tN.Note_Categorie = 'CVDG' and tN.Note_Valeur = '{year}'
     where(UT.UniteTravail_Archive = 0 OR UT.UniteTravail_Archive IS NULL)                                                                                                                   
         --AND TMP.Travail_Superficie > 0                                                                                                                                                    
         and P.Portail = 1                                                                                                                                                                   
         and(select count(*) from dbo.vInterlocuteur INT where INT.ID_vPropriete = P.ID_vPropriete and isnull(INT.Interloc_Email, '') not like '') > 0                                       
-        --and P.ID_vPropriete = 1947                                                                                                                                                        
+                                                                                                                                                         
         AND(SELECT COUNT(*)                                                                                                                                                                 
                 FROM tNote                                                                                                                                                                  
                 WHERE Note_Fichier = 'vUniteTravail'                                                                                                                                        
@@ -349,17 +357,19 @@ namespace APIComptageVDG.Services
 					,  UT.UniteTravail_Code
                    , UT.UniteTravail_Libelle                                                                                                                                                
                    , UT.UniteTravail_Libelle2                                                                                                                                               
-                  -- , P.Propriete_Libelle                                                                                                                                                    
+                   , P.Propriete_Libelle                                                                                                                                                    
                   -- , P.ID_vPropriete                                                                                                                                                        
-                 --  , NOTE.[Note : Appellation de travail]                                                                                                                                   
-                --   , TMP.Travail_CepageMajoritaire                                                                                                                                          
+                   , NOTE.[Note : Appellation de travail]                                                                                                                                   
+                  , TMP.Travail_CepageMajoritaire                                                                                                                                          
                    , TMP.Travail_Superficie                                                                                                                                                 
                    , NOTE.[Note : Qualité]                                                                                                                                                 
                   -- , NOTE.[Note : Prestataire]                                                                                                                                             
                  --  , NOTE.[Note : Type de récolte]                                                                                                                                        
                    , NOTE.[Note : Site de vendange]                                                                                                                                        
                  --  , NOTE.[Note : Vendanges - Totalement vendangée]    
-				 ,tN.Note_Valeur";
+				 ,tN.Note_Valeur
+				 ,ut.UniteTravail_Site
+				  , NOTE.[Note : Site de vendange]";
 
                 result = connection.Query<ParcelleModel>(req).ToList();
 
@@ -378,16 +388,16 @@ namespace APIComptageVDG.Services
             try
             {
                 var result = new List<ParcelleModel>();
-
-                var req = @$" 
-                   select  UT.ID_vUniteTravail as id_parcelle 
+                var req = @$"
+                      
+                     select  UT.ID_vUniteTravail as id_parcelle 
                    , UT.UniteTravail_Code ut 
                    , UT.UniteTravail_Libelle  nameParcelle                                                                                                                                  
                    , UT.UniteTravail_Libelle2 nameParcelle2                                                                                                                                 
-                  -- , P.Propriete_Libelle                                                                                                                                                    
-                  -- , P.ID_vPropriete                                                                                                                                                        
-                  -- , NOTE.[Note : Appellation de travail] Appellation                                                                                                                        
-                 --  , TMP.Travail_CepageMajoritaire Cepage                                                                                                                                   
+                   , P.Propriete_Libelle  propriete                                                                                                                                                  
+                  -- , P.ID_vPropriete                                                                                                                                                         
+                   , NOTE.[Note : Appellation de travail] appellation                                                                                                                        
+                   , TMP.Travail_CepageMajoritaire cepage                                                                                                                                   
                    , CASE WHEN NOTE.[Note : Site de vendange] <> 'CONDOM' THEN                                                                                                               
                                                                                                   (SELECT TOP 1 O2.[Qualité de classement]                                                  
                                                                                                   FROM vObservation O2                                                                      
@@ -413,25 +423,27 @@ namespace APIComptageVDG.Services
                   -- , NOTE.[Note : Vendanges - Totalement vendangée] TotalementVendangee                                                                                                      
                    , TMP.Travail_Superficie surface                                                                                                                                         
                   -- , SUM(R.Recolte_Superficie) as SuperficieVendangee                                                                                                                       
-                  -- , SUM(R.Recolte_Poids) as PoidsVendange   
+                  -- , SUM(R.Recolte_Poids) as PoidsVendange  
+				  ,ut.UniteTravail_Site technique
+				  , NOTE.[Note : Site de vendange] vendange
 				  ,CASE tN.Note_Valeur 
 						WHEN '{year}' THEN 'true'
 						ELSE 'false'
-					end InCampagne
+					end inCampagne
 				  , null cptGlomerule
 				  , null cptPerforation1 
 				  , null cptPerforation2
-    from dbo.vUniteTravail UT                                                                                                                                                               
+    from [LAVILOG_TEST_M3].dbo.vUniteTravail UT                                                                                                                                                               
                    inner join dbo.vPropriete P on P.ID_vPropriete = UT.ID_vPropriete                                                                                                        
                    inner join dbo.pTmpTravailCompoColonne TMP on TMP.ID_vUniteTravail = UT.ID_vUniteTravail                                                                                 
                    left  join dbo.pTmpNoteColonne_vUniteTravail NOTE ON NOTE.ID_Target = UT.ID_vUniteTravail                                                                                
                    left  join dbo.vRecolte R on R.ID_vUniteTravail = UT.ID_vUniteTravail and year(R.Recolte_Date) = year(getdate()) 
-				   left join dbo.tNote tN on  tN.ID_Target = UT.ID_vUniteTravail and tN.Note_Categorie = 'CVDG' and tN.Note_Valeur = '{year}'
+				   left  join dbo.tNote tN on  tN.ID_Target = UT.ID_vUniteTravail and tN.Note_Categorie = 'CVDG' and tN.Note_Valeur = '{year}'
     where(UT.UniteTravail_Archive = 0 OR UT.UniteTravail_Archive IS NULL)                                                                                                                   
         --AND TMP.Travail_Superficie > 0                                                                                                                                                    
         and P.Portail = 1                                                                                                                                                                   
         and(select count(*) from dbo.vInterlocuteur INT where INT.ID_vPropriete = P.ID_vPropriete and isnull(INT.Interloc_Email, '') not like '') > 0                                       
-        --and P.ID_vPropriete = 1947                                                                                                                                                        
+                                                                                                                                                         
         AND(SELECT COUNT(*)                                                                                                                                                                 
                 FROM tNote                                                                                                                                                                  
                 WHERE Note_Fichier = 'vUniteTravail'                                                                                                                                        
@@ -465,10 +477,10 @@ namespace APIComptageVDG.Services
 					,  UT.UniteTravail_Code
                    , UT.UniteTravail_Libelle                                                                                                                                                
                    , UT.UniteTravail_Libelle2                                                                                                                                               
-                  -- , P.Propriete_Libelle                                                                                                                                                    
+                   , P.Propriete_Libelle                                                                                                                                                    
                   -- , P.ID_vPropriete                                                                                                                                                        
-                 --  , NOTE.[Note : Appellation de travail]                                                                                                                                   
-                --   , TMP.Travail_CepageMajoritaire                                                                                                                                          
+                   , NOTE.[Note : Appellation de travail]                                                                                                                                   
+                  , TMP.Travail_CepageMajoritaire                                                                                                                                          
                    , TMP.Travail_Superficie                                                                                                                                                 
                    , NOTE.[Note : Qualité]                                                                                                                                                 
                   -- , NOTE.[Note : Prestataire]                                                                                                                                             
@@ -476,7 +488,9 @@ namespace APIComptageVDG.Services
                    , NOTE.[Note : Site de vendange]                                                                                                                                        
                  --  , NOTE.[Note : Vendanges - Totalement vendangée]    
 				 ,tN.Note_Valeur
-    order by   UT.UniteTravail_Code";
+				 ,ut.UniteTravail_Site
+				  , NOTE.[Note : Site de vendange]";
+
 
                 result = connection.Query<ParcelleModel>(req).ToList();
                                 

@@ -173,8 +173,12 @@
 
                     <igDP:FieldLayout>
 
-                        <igDP:FieldLayout.SummaryDefinitions>
-                            <igDP:SummaryDefinition Calculator="{x:Static igDP:SummaryCalculator.Sum}" SourceFieldName="inCampagne" />
+                        <igDP:FieldLayout.SummaryDefinitions  >
+                            <igDP:SummaryDefinition
+                                Calculator="{x:Static igDP:SummaryCalculator.Count}"
+                                PositionFieldName="ut"
+                                SourceFieldName="ut"
+                                StringFormat = "Total={0}" />
                         </igDP:FieldLayout.SummaryDefinitions>
 
                         <igDP:FieldLayout.Settings>
@@ -187,7 +191,7 @@
                         <igDP:FieldLayout.Fields>
                             <igDP:CheckBoxField
                                 Name="inCampagne"
-                                Width="20"
+                                Width="25"
                                 AllowEdit="true"
                                 IsReadOnly="{Binding Path=DataContext.IsRead, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=false, Converter={StaticResource DebugConverter}}"
                                 Label="">
@@ -198,10 +202,19 @@
                             <igDP:NumericField
                                 Name="id_parcelle"
                                 Width="50"
-                                Label="Id UT" />
+                                Label="Id UT"
+                                Visibility="Collapsed" />
                             <igDP:TextField Name="ut" Label="UT" />
-                            <igDP:TextField Name="nameParcelle" Label="Désignation" />
+                            <igDP:TextField
+                                Name="nameParcelle"
+                                Label="Désignation"
+                                Visibility="Collapsed" />
                             <igDP:TextField Name="nameParcelle2" Label="Désignation 2" />
+                            <igDP:TextField Name="propriete" Label="Propriété" />
+                            <igDP:TextField Name="appellation" Label="Appellation" />
+                            <igDP:TextField Name="cepage" Label="Cépage" />
+                            <igDP:TextField Name="technique" Label="Site Technique" />
+                            <igDP:TextField Name="vendange" Label="Site Vendange" />
                             <igDP:NumericField
                                 Name="surface"
                                 Format="##0.000 ha"

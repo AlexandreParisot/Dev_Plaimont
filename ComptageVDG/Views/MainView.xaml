@@ -60,7 +60,7 @@
             x:Name="Notification"
             Grid.Row="1"
             Grid.ColumnSpan="2"
-            HorizontalAlignment="Left"
+            HorizontalAlignment="Stretch"
             VerticalAlignment="Bottom"
             Panel.ZIndex="9998" />
 

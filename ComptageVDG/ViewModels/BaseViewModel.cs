@@ -59,11 +59,18 @@ namespace ComptageVDG.ViewModels
 
         protected void SetProperty<T>(ref T oldValue, T newValue, [CallerMemberName] string name = null)
         {
-            // Todo test egalité
-            //ancienne valeur = nouvelle valeur
-            oldValue = newValue;
-            //PropertyChanged -> nom de la propriété
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+            try
+            {
+                // Todo test egalité
+                //ancienne valeur = nouvelle valeur
+                oldValue = newValue;
+                //PropertyChanged -> nom de la propriété
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+            }catch(Exception ex)
+            {
+                Gestion.Erreur(ex.Message);
+            }
+            
         }
 
         protected void RaisPropertyChanged(string name)
