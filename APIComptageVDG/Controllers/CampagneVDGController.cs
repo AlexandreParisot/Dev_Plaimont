@@ -6,6 +6,7 @@ using APIComptageVDG.Provider;
 using APIComptageVDG.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MySqlX.XDevAPI.Common;
 using System.Runtime.InteropServices;
 using System.Security.Policy;
 using System.Text.Json;
@@ -17,6 +18,7 @@ namespace APIComptageVDG.Controllers
     public class CampagneVDGController : Controller
     {
         private InstagrappeApiProvider _provider;
+        private InstagrappeServcie _instaService;
         private LavilogService _service;
 
         private IConfiguration _config;
@@ -24,24 +26,35 @@ namespace APIComptageVDG.Controllers
         {
             _config = config;
             //_service = service;
-            if (!string.IsNullOrEmpty(_config.GetConnectionString("SqlConnexion")))
-            {
-                if (_service == null)
-                    _service = new LavilogService();
+            if (_service == null)
+                _service = new LavilogService();
 
+            if (!string.IsNullOrEmpty(_config.GetConnectionString("SqlConnexion")))            
                 _service.SetConnexion(_config.GetConnectionString("SqlConnexion")!);
+            
+
+            var url_token = _config["Instagrappe:URL_Token"];
+            var url_api = _config["Instagrappe:URL_API"];
+            var user = _config["Instagrappe:ID"];
+            var pwd = _config["Instagrappe:MDP"];
+
+            if(_instaService == null)
+                _instaService = new InstagrappeServcie();
+
+            if (!string.IsNullOrEmpty(url_token) && !string.IsNullOrEmpty(url_api) && !string.IsNullOrEmpty(user) && !string.IsNullOrEmpty(pwd))
+            {
+                _provider = new InstagrappeApiProvider(url_token, url_api, user, pwd);
+                _instaService.SetApiProviderInstagrappe(_provider);
             }
-               
         }
 
+            #region Instagrappe
 
-        #region Instagrappe
-
-        /// <summary>
-        /// retour le token de l'api Instagrappe
-        /// </summary>
-        /// <returns></returns>
-        [HttpGet("Instagrappe")]
+            /// <summary>
+            /// retour le token de l'api Instagrappe
+            /// </summary>
+            /// <returns></returns>
+            [HttpGet("Instagrappe")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<String>> GetTokenInstagrappe()
@@ -50,11 +63,9 @@ namespace APIComptageVDG.Controllers
             var url_api = _config["Instagrappe:URL_API"];
             var user = _config["Instagrappe:ID"];
             var pwd = _config["Instagrappe:MDP"];
-            if (!string.IsNullOrEmpty(url_token) && !string.IsNullOrEmpty(url_api) && !string.IsNullOrEmpty(user) && !string.IsNullOrEmpty(pwd))
+            if (_instaService?.SuccessConfig ==true)
             {
-                var client = new InstagrappeApiProvider(url_token, url_api, user, pwd);
-
-                var token = await client.GetToken();
+                var token = await _instaService.getToken();
                 if (!string.IsNullOrEmpty(token))
                 {
                     Gestion.Info($"Recuperation Token : {token}");
@@ -90,40 +101,17 @@ namespace APIComptageVDG.Controllers
             if (!int.TryParse(AnneeCampagne, out annee))
                 return BadRequest("L'année de la campagne n'est pas correct.");
 
-            var cCommandeGet = string.Empty;
-            cCommandeGet += "code_activite=" + code_activite;
-            cCommandeGet += "&code_campagne=" + annee;
-            cCommandeGet += "&indicateur_modele=v_code_modele";
-            cCommandeGet += "&indicateur_contrat=v_code_modele";
-            cCommandeGet += "&valeur_contrat=MODELE_" + code_activite;
 
-
-            if (await getToken() is string token && !string.IsNullOrEmpty(token))
+            if (_instaService.SuccessConfig )
             {
-                var result = await _provider.CallApi("export/engagement", HttpMethod.Get, entetedata: cCommandeGet);
-                if (result.IsSuccessStatusCode)
-                {
-                    var str = await result.Content.ReadAsStringAsync();
-                    if (!string.IsNullOrEmpty(str))
-                    {
-                        var Engagement = JsonSerialize.Deserialize<Engagements>(str);
-                        if (Engagement == null || Engagement.engagements?.Count > 0)
-                            return Ok(Engagement);
-                        else
-                            return Ok(str);
-                    }
-                    else
-                        return BadRequest(str);
-                }
-                else
-                    return BadRequest(await result.Content.ReadAsStringAsync());
+                var result = await _instaService.GetEngagementInstagrappe(code_activite,annee);
+                return result.success ? Ok(result.result) : BadRequest(result.result);
             }
             else
                 return BadRequest("Probléme de connexion a l'api Instagrappe.");
-
-
         }
 
+       
 
         /// <summary>
         ///  Envoi a instagrappe le fichier json des engagement cadre
@@ -147,30 +135,33 @@ namespace APIComptageVDG.Controllers
 
            if( await sFtpHelper.AsyncUploadFile(Path))
             {
-                var cCommandeGet = string.Empty;
-                cCommandeGet += "file=" + System.IO.Path.GetFileName(Path);
-
-                if (await getToken() is string token && !string.IsNullOrEmpty(token))
-                {
-                    var result = await _provider.CallApi($"import/apport", HttpMethod.Post, entetedata: cCommandeGet);
-                    if (result.IsSuccessStatusCode)
+                if (_instaService.SuccessConfig) {
+                    
+                    var result = await _instaService.SetImportInstagrappe(Path);
+                    try
                     {
-                        var str = await result.Content.ReadAsStringAsync();
-                        if (!string.IsNullOrEmpty(str))                       
-                            return Ok(str);                       
+                        //archive le fichier json
+                        System.IO.Directory.CreateDirectory(System.IO.Path.Combine(Gestion.Current_Dir, "API", "Reussi"));
+                        if (result.success)
+                        {
+                            System.IO.File.Copy(Path, System.IO.Path.Combine(Gestion.Current_Dir, "API", "Reussi", System.IO.Path.GetFileName(Path)),true);
+                            System.IO.File.Delete(Path);
+                        }
                         else
-                            return BadRequest(str);
-                    }
-                    else
+                        {
+                            System.IO.File.Copy(Path, System.IO.Path.Combine(Gestion.Current_Dir, "API", "Echec", System.IO.Path.GetFileName(Path)), true);
+                            System.IO.File.Delete(Path);
+                        }
+                    }catch(Exception ex)
                     {
-                        var erreur = await result.Content.ReadAsStringAsync();
-                        Gestion.Erreur(erreur);
-                        return BadRequest(erreur);
+                        Gestion.Erreur($"Erreur Archivage fichier : {System.IO.Path.GetFileName(Path)} - {ex.Message}");
                     }
-                      
+                    
+
+                    return result.success ? Ok(result.result) : BadRequest(result.result);  
                 }
                 else
-                    return BadRequest("Probléme de connexion à l'api Instagrappe.");
+                    return BadRequest("Il manque des informaitons pour le parametrage de l'appel de l'api instagrappe.");
             }
 
             return BadRequest("Impossible d'envoyer le fichier sur le serveur Sftp.");
@@ -189,106 +180,45 @@ namespace APIComptageVDG.Controllers
         public async Task<ActionResult<string>> GetEngagementVersDeGrappe(string AnneeCampagne)
         {
 
-            //if (string.IsNullOrEmpty(code_activite))
-            //    return BadRequest("code modele est vide.");
-
             int annee = 0;
             if (!int.TryParse(AnneeCampagne, out annee))
                 return BadRequest("L'année de la campagne n'est pas correct.");
 
-            var cCommandeGet = string.Empty;
-            cCommandeGet += "code_activite=PARCELLE";// + code_activite;
-            cCommandeGet += "&code_campagne=" + annee;
-            cCommandeGet += "&indicateur_modele=v_code_modele";
-            cCommandeGet += "&indicateur_contrat=statut_inscription";
-            cCommandeGet += "&valeur_contrat=OUVERTE";
-
-
-            if (await getToken() is string token && !string.IsNullOrEmpty(token))
+            if (_instaService.SuccessConfig)
             {
-                var result = await _provider.CallApi("export/engagement", HttpMethod.Get,entetedata: cCommandeGet);
-                if (result.IsSuccessStatusCode)
-                {
-                    var str = await result.Content.ReadAsStringAsync();
-                    if (!string.IsNullOrEmpty(str))
-                    {
-                        var Engagement = JsonSerialize.Deserialize<Engagements>(str);
-                        if (Engagement == null || Engagement.engagements?.Count > 0)
-                            return Ok(Engagement);
-                        else
-                            return Ok(str);
-                    }
-                    else
-                        return BadRequest(str);
-                }
-                else
-                    return BadRequest(await result.Content.ReadAsStringAsync());
+                var result = await _instaService.GetEngagementVersDeGrappe(annee);
+                return result.success ? Ok(result?.result) : BadRequest(result?.result);
+
             }
             else
-                return BadRequest("Probléme de connexion a l'api Instagrappe.");
+                return BadRequest("Il manque des informaitons pour le parametrage de l'appel de l'api instagrappe.");
 
 
         }
 
 
+       
         /// <summary>
-        /// 
+        /// Génére le fichier engagement cadre pour le vers de grappe.
+        /// constitu le fichier json.
         /// </summary>
-        /// <param name="AnneeCampagne"></param>
-        /// <returns></returns>
-        [HttpGet("Instagrappe/EngagementCadreVersDeGrappe")]
+        /// <returns>retourne le nom du fichier json a lancer a l'import. sinon retourne rien.</returns>
+        [HttpGet("Instagrappe/GenerateEngagementCardeVDG")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<string>> GetEngagementCadreVersDeGrappe(string AnneeCampagne)
+        public async Task<ActionResult<string>> GenerateEngagementCadreVDGInstagrappe()
         {
+            string fileJson = string.Empty;
 
-            //if (string.IsNullOrEmpty(code_activite))
-            //    return BadRequest("code modele est vide.");
+            var listParcelle = await _service.AsyncGetParcellesInCampagne(int.Parse(DateTime.Today.ToString("yyyy")));
+            var listPeriode = await _service.AsyncGetPeriode(DateTime.Today.ToString("yyyy"));
 
-            int annee = 0;
-            if (!int.TryParse(AnneeCampagne, out annee))
-                return BadRequest("L'année de la campagne n'est pas correct.");
-
-
-
-            var cCommandeGet = string.Empty;
-            cCommandeGet += "code_activite=PARCELLE";
-            cCommandeGet += "&code_campagne=" + annee;
-            //cCommandeGet += "&indicateur_modele=v_code_modele";
-            //cCommandeGet += "&indicateur_contrat=v_code_modele";
-            //cCommandeGet += "&valeur_contrat=MODELE_" + code_activite;
-
-
-            if (await getToken() is string token && !string.IsNullOrEmpty(token))
-            {
-                var result = await _provider.CallApi("export/engagementCadre", HttpMethod.Get, entetedata: cCommandeGet);
-                if (result.IsSuccessStatusCode)
-                {
-                    var str = await result.Content.ReadAsStringAsync();
-                    if (!string.IsNullOrEmpty(str))
-                    {
-                        var EngagementCadre = JsonSerialize.Deserialize<EngagementCadreModel>(str);
-                        if (EngagementCadre == null || EngagementCadre.engagements_cadre?.Count > 0)
-                        {
-                            var upsert = new IncrementalModel();
-                            upsert.upsert = new Upsert() { Obj = EngagementCadre };
-                            var StrUpsert = JsonSerialize.Serialize(upsert);
-
-                            return Ok(EngagementCadre);
-                        }
-
-                        return Ok(str);
-                    }
-                    else
-                        return BadRequest(str);
-                }
-                else
-                    return BadRequest(await result.Content.ReadAsStringAsync());
-            }
-            else
-                return BadRequest("Probléme de connexion a l'api Instagrappe.");
+            var result = await _instaService.GenerateEngagementCadreVDGInstagrappe(listParcelle, listPeriode, int.Parse(DateTime.Today.ToString("yyyy"))) ; 
+            return result.success ? Ok(result?.result) : BadRequest(result?.result);    
+            
 
         }
+
 
 
         /// <summary>
@@ -311,130 +241,40 @@ namespace APIComptageVDG.Controllers
             if (!int.TryParse(AnneeCampagne, out annee))
                 return BadRequest("L'année de la campagne n'est pas correct.");
 
-
-
-            var cCommandeGet = string.Empty;
-            cCommandeGet += "code_activite=" + code_activite;
-            cCommandeGet += "&code_campagne=" + annee;
-            //cCommandeGet += "&indicateur_modele=v_code_modele";
-            //cCommandeGet += "&indicateur_contrat=v_code_modele";
-            //cCommandeGet += "&valeur_contrat=MODELE_" + code_activite;
-
-
-            if (await getToken() is string token && !string.IsNullOrEmpty(token))
+            if(_instaService.SuccessConfig)
             {
-                var result = await _provider.CallApi("export/engagementCadre", HttpMethod.Get, entetedata: cCommandeGet);
-                if (result.IsSuccessStatusCode)
-                {
-                    var str = await result.Content.ReadAsStringAsync();
-                    if (!string.IsNullOrEmpty(str))
-                    {
-                        var EngagementCadre = JsonSerialize.Deserialize<EngagementCadreModel>(str);
-                        if (EngagementCadre == null || EngagementCadre.engagements_cadre?.Count > 0)
-                        {
-                            var upsert = new IncrementalModel();
-                            upsert.upsert = new Upsert() { Obj = EngagementCadre };
-                            var StrUpsert = JsonSerialize.Serialize(upsert);
-
-                            return Ok(EngagementCadre);
-                        }
-
-                        return Ok(str);
-                    }
-                    else
-                        return BadRequest(str);
-                }
-                else
-                    return BadRequest(await result.Content.ReadAsStringAsync());
+               var result = await _instaService.GetEngagementCadreInstagrappe(code_activite, annee);
+               return result.success ? Ok(result.result) : BadRequest(result.result);
             }
             else
-                return BadRequest("Probléme de connexion a l'api Instagrappe.");
-
+              return BadRequest("Il manque des informaitons pour le parametrage de l'appel de l'api instagrappe.");
 
         }
 
+
         /// <summary>
-        ///  Retourne les engagnements 
+        /// 
         /// </summary>
-        /// <param name="engagement"></param>
         /// <param name="AnneeCampagne"></param>
-        /// <param name="code_modele"></param>
         /// <returns></returns>
-        [HttpGet("Instagrappe/export/cgu")]
+        [HttpGet("Instagrappe/EngagementCadreVersDeGrappe")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult> cgu()
-        {
-            if (await getToken() is string token && !string.IsNullOrEmpty(token))
+        public async Task<ActionResult<string>> GetEngagementCadreVersDeGrappe(string AnneeCampagne)
+        {            
+            int annee = 0;
+            if (!int.TryParse(AnneeCampagne, out annee))
+                return BadRequest("L'année de la campagne n'est pas correct.");
+
+            if (_instaService.SuccessConfig)
             {
-                var result = await _provider.CallApi("export/cgu", HttpMethod.Get);
-                if (result.IsSuccessStatusCode)
-                {
-                    var str = await result.Content.ReadAsStringAsync();
-                    if (!string.IsNullOrEmpty(str))
-                    {
-                        var cgus = JsonSerialize.Deserialize<GgusModel>(str);
-                        return Ok(cgus);
-                    }
+                var result = await _instaService.GetEngagementCadreVersDeGrappe(annee);
+                return result.success? Ok(result?.result) : BadRequest(result?.result);  
 
-                    else
-                        return BadRequest(str);
-                }
-                else
-                    return BadRequest(await result.Content.ReadAsStringAsync());
-            }
-            else
-                return BadRequest("Probléme de connexion a l'api Instagrappe.");
-
+            }else
+                return BadRequest("Il manque des informaitons pour le parametrage de l'appel de l'api instagrappe.");
         }
 
-
-        [HttpPost("Instagrappe/Config")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult> Config()
-        {
-            if (await getToken() is string token && !string.IsNullOrEmpty(token))
-            {
-                return Ok(_provider.CallApi("config", HttpMethod.Post));
-            }
-            else
-                return BadRequest("Probléme de connexion a l'api Instagrappe.");
-
-        }
-
-
-        #region Private Methode 
-
-        /// <summary>
-        /// retourne le token instagrappe
-        /// </summary>
-        /// <returns></returns>
-        private async Task<string> getToken()
-        {
-            var url_token = _config["Instagrappe:URL_Token"];
-            var url_api = _config["Instagrappe:URL_API"];
-            var user = _config["Instagrappe:ID"];
-            var pwd = _config["Instagrappe:MDP"];
-            if (!string.IsNullOrEmpty(url_token) && !string.IsNullOrEmpty(url_api) && !string.IsNullOrEmpty(user) && !string.IsNullOrEmpty(pwd))
-            {
-                _provider = new InstagrappeApiProvider(url_token, url_api, user, pwd);
-
-                var token = await _provider.GetToken();
-                if (!string.IsNullOrEmpty(token))
-                {
-                    Gestion.Info($"Recuperation Token : {token}");
-                    return token;
-                }
-                Gestion.Erreur("Une erreur s'est produit lors de la recupération du token.");
-            }
-            else
-                Gestion.Erreur($"Il manque des informations dans Appsetting.json pour contacter l'api Instagrappe. ");
-
-            return string.Empty;
-        }
-
-        #endregion
         #endregion
 
         #region Lavilog

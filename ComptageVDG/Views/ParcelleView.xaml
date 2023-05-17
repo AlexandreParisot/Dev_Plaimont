@@ -173,12 +173,12 @@
 
                     <igDP:FieldLayout>
 
-                        <igDP:FieldLayout.SummaryDefinitions  >
+                        <igDP:FieldLayout.SummaryDefinitions>
                             <igDP:SummaryDefinition
                                 Calculator="{x:Static igDP:SummaryCalculator.Count}"
                                 PositionFieldName="ut"
                                 SourceFieldName="ut"
-                                StringFormat = "Total={0}" />
+                                StringFormat="Total={0}" />
                         </igDP:FieldLayout.SummaryDefinitions>
 
                         <igDP:FieldLayout.Settings>
@@ -213,8 +213,8 @@
                             <igDP:TextField Name="propriete" Label="Propriété" />
                             <igDP:TextField Name="appellation" Label="Appellation" />
                             <igDP:TextField Name="cepage" Label="Cépage" />
-                            <igDP:TextField Name="technique" Label="Site Technique" />
-                            <igDP:TextField Name="vendange" Label="Site Vendange" />
+                            <igDP:TextField Name="site_technique" Label="Site Technique" />
+                            <igDP:TextField Name="site_vendange" Label="Site Vendange" />
                             <igDP:NumericField
                                 Name="surface"
                                 Format="##0.000 ha"

@@ -269,13 +269,13 @@ namespace APIComptageVDG.Services
             {
                 var result = new List<ParcelleModel>();
 
-                var req = @$" 
+                var req = $@" 
                      select  UT.ID_vUniteTravail as id_parcelle 
                    , UT.UniteTravail_Code ut 
                    , UT.UniteTravail_Libelle  nameParcelle                                                                                                                                  
                    , UT.UniteTravail_Libelle2 nameParcelle2                                                                                                                                 
                    , P.Propriete_Libelle  propriete                                                                                                                                                  
-                  -- , P.ID_vPropriete                                                                                                                                                         
+                   , P.ID_vPropriete    id_propriete                                                                                                                                                      
                    , NOTE.[Note : Appellation de travail] appellation                                                                                                                        
                    , TMP.Travail_CepageMajoritaire cepage                                                                                                                                   
                    , CASE WHEN NOTE.[Note : Site de vendange] <> 'CONDOM' THEN                                                                                                               
@@ -297,15 +297,14 @@ namespace APIComptageVDG.Services
                                                                                                   ORDER BY A2.Action_Date DESC                                                              
                                                                                                   )                                                                                         
                                                    END qualite                                                                                                                              
-                  -- , NOTE.[Note : Prestataire] Prestataire                                                                                                                                   
-                  -- , NOTE.[Note : Type de récolte] TypeVendange                                                                                                                              
-                  -- , NOTE.[Note : Site de vendange] SiteVendange                                                                                                                             
-                  -- , NOTE.[Note : Vendanges - Totalement vendangée] TotalementVendangee                                                                                                      
+                   , NOTE.[Note : Prestataire] prestataire                                                                                                                                   
+                   , NOTE.[Note : Type de récolte] type_vendange                                                                                                                              
+                   , NOTE.[Note : Site de vendange] site_vendange                                                                                                                             
+                   , NOTE.[Note : Vendanges - Totalement vendangée] totalement_vendangee                                                                                                      
                    , TMP.Travail_Superficie surface                                                                                                                                         
-                  -- , SUM(R.Recolte_Superficie) as SuperficieVendangee                                                                                                                       
-                  -- , SUM(R.Recolte_Poids) as PoidsVendange  
-				  ,ut.UniteTravail_Site technique
-				  , NOTE.[Note : Site de vendange] vendange
+                   , SUM(R.Recolte_Superficie) as superficie_vendangee                                                                                                                       
+                   , SUM(R.Recolte_Poids) as poids_vendange  
+				  ,ut.UniteTravail_Site site_technique
 				  ,CASE tN.Note_Valeur 
 						WHEN '{year}' THEN 'true'
 						ELSE 'false'
@@ -318,7 +317,7 @@ namespace APIComptageVDG.Services
                    inner join dbo.pTmpTravailCompoColonne TMP on TMP.ID_vUniteTravail = UT.ID_vUniteTravail                                                                                 
                    left  join dbo.pTmpNoteColonne_vUniteTravail NOTE ON NOTE.ID_Target = UT.ID_vUniteTravail                                                                                
                    left  join dbo.vRecolte R on R.ID_vUniteTravail = UT.ID_vUniteTravail and year(R.Recolte_Date) = year(getdate()) 
-				   inner  join dbo.tNote tN on  tN.ID_Target = UT.ID_vUniteTravail and tN.Note_Categorie = 'CVDG' and tN.Note_Valeur = '{year}'
+				   inner join dbo.tNote tN on  tN.ID_Target = UT.ID_vUniteTravail and tN.Note_Categorie = 'CVDG' and tN.Note_Valeur = '{year}'
     where(UT.UniteTravail_Archive = 0 OR UT.UniteTravail_Archive IS NULL)                                                                                                                   
         --AND TMP.Travail_Superficie > 0                                                                                                                                                    
         and P.Portail = 1                                                                                                                                                                   
@@ -358,18 +357,19 @@ namespace APIComptageVDG.Services
                    , UT.UniteTravail_Libelle                                                                                                                                                
                    , UT.UniteTravail_Libelle2                                                                                                                                               
                    , P.Propriete_Libelle                                                                                                                                                    
-                  -- , P.ID_vPropriete                                                                                                                                                        
+                   , P.ID_vPropriete                                                                                                                                                        
                    , NOTE.[Note : Appellation de travail]                                                                                                                                   
                   , TMP.Travail_CepageMajoritaire                                                                                                                                          
                    , TMP.Travail_Superficie                                                                                                                                                 
                    , NOTE.[Note : Qualité]                                                                                                                                                 
-                  -- , NOTE.[Note : Prestataire]                                                                                                                                             
-                 --  , NOTE.[Note : Type de récolte]                                                                                                                                        
+                   , NOTE.[Note : Prestataire]                                                                                                                                             
+                   , NOTE.[Note : Type de récolte]                                                                                                                                        
                    , NOTE.[Note : Site de vendange]                                                                                                                                        
-                 --  , NOTE.[Note : Vendanges - Totalement vendangée]    
+                   , NOTE.[Note : Vendanges - Totalement vendangée]    
 				 ,tN.Note_Valeur
 				 ,ut.UniteTravail_Site
 				  , NOTE.[Note : Site de vendange]";
+
 
                 result = connection.Query<ParcelleModel>(req).ToList();
 
@@ -388,14 +388,14 @@ namespace APIComptageVDG.Services
             try
             {
                 var result = new List<ParcelleModel>();
-                var req = @$"
-                      
+
+                var req = $@" 
                      select  UT.ID_vUniteTravail as id_parcelle 
                    , UT.UniteTravail_Code ut 
                    , UT.UniteTravail_Libelle  nameParcelle                                                                                                                                  
                    , UT.UniteTravail_Libelle2 nameParcelle2                                                                                                                                 
                    , P.Propriete_Libelle  propriete                                                                                                                                                  
-                  -- , P.ID_vPropriete                                                                                                                                                         
+                   , P.ID_vPropriete    id_propriete                                                                                                                                                      
                    , NOTE.[Note : Appellation de travail] appellation                                                                                                                        
                    , TMP.Travail_CepageMajoritaire cepage                                                                                                                                   
                    , CASE WHEN NOTE.[Note : Site de vendange] <> 'CONDOM' THEN                                                                                                               
@@ -417,15 +417,14 @@ namespace APIComptageVDG.Services
                                                                                                   ORDER BY A2.Action_Date DESC                                                              
                                                                                                   )                                                                                         
                                                    END qualite                                                                                                                              
-                  -- , NOTE.[Note : Prestataire] Prestataire                                                                                                                                   
-                  -- , NOTE.[Note : Type de récolte] TypeVendange                                                                                                                              
-                  -- , NOTE.[Note : Site de vendange] SiteVendange                                                                                                                             
-                  -- , NOTE.[Note : Vendanges - Totalement vendangée] TotalementVendangee                                                                                                      
+                   , NOTE.[Note : Prestataire] prestataire                                                                                                                                   
+                   , NOTE.[Note : Type de récolte] type_vendange                                                                                                                              
+                   , NOTE.[Note : Site de vendange] site_vendange                                                                                                                             
+                   , NOTE.[Note : Vendanges - Totalement vendangée] totalement_vendangee                                                                                                      
                    , TMP.Travail_Superficie surface                                                                                                                                         
-                  -- , SUM(R.Recolte_Superficie) as SuperficieVendangee                                                                                                                       
-                  -- , SUM(R.Recolte_Poids) as PoidsVendange  
-				  ,ut.UniteTravail_Site technique
-				  , NOTE.[Note : Site de vendange] vendange
+                   , SUM(R.Recolte_Superficie) as superficie_vendangee                                                                                                                       
+                   , SUM(R.Recolte_Poids) as poids_vendange  
+				  ,ut.UniteTravail_Site site_technique
 				  ,CASE tN.Note_Valeur 
 						WHEN '{year}' THEN 'true'
 						ELSE 'false'
@@ -478,18 +477,20 @@ namespace APIComptageVDG.Services
                    , UT.UniteTravail_Libelle                                                                                                                                                
                    , UT.UniteTravail_Libelle2                                                                                                                                               
                    , P.Propriete_Libelle                                                                                                                                                    
-                  -- , P.ID_vPropriete                                                                                                                                                        
+                   , P.ID_vPropriete                                                                                                                                                        
                    , NOTE.[Note : Appellation de travail]                                                                                                                                   
                   , TMP.Travail_CepageMajoritaire                                                                                                                                          
                    , TMP.Travail_Superficie                                                                                                                                                 
                    , NOTE.[Note : Qualité]                                                                                                                                                 
-                  -- , NOTE.[Note : Prestataire]                                                                                                                                             
-                 --  , NOTE.[Note : Type de récolte]                                                                                                                                        
+                   , NOTE.[Note : Prestataire]                                                                                                                                             
+                   , NOTE.[Note : Type de récolte]                                                                                                                                        
                    , NOTE.[Note : Site de vendange]                                                                                                                                        
-                 --  , NOTE.[Note : Vendanges - Totalement vendangée]    
+                   , NOTE.[Note : Vendanges - Totalement vendangée]    
 				 ,tN.Note_Valeur
 				 ,ut.UniteTravail_Site
 				  , NOTE.[Note : Site de vendange]";
+
+
 
 
                 result = connection.Query<ParcelleModel>(req).ToList();
@@ -498,7 +499,7 @@ namespace APIComptageVDG.Services
             }
             catch (Exception e)
             {
-                Gestion.Erreur($"{e.Message}");
+                Gestion.Erreur($"param input : {year} - {e.Message}");
                 return null;
             }
            
@@ -551,7 +552,6 @@ namespace APIComptageVDG.Services
                 return new List<int>();
             }
         }
-
 
         public Task<IEnumerable<long>> AsyncSetCptParcellesCampagne(ParcelleModel Parcelles, int year)
         {

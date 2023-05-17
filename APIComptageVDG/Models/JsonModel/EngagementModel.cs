@@ -1,7 +1,11 @@
-﻿namespace APIComptageVDG.Models.JsonModel
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
+
+namespace APIComptageVDG.Models.JsonModel
 {
     public class Engagements
     {
+        [JsonProperty("engagements")]
         public List<EngagementModel> engagements { get; set; }
     }
 
@@ -15,6 +19,8 @@
         public string v_code_production { get; set; }
         public string v_code_commercialisation { get; set; }
         public string v_num_engagement_cadre { get; set; }
+
+        [JsonProperty("complements")]
         public Complements complements { get; set; }
     }
 

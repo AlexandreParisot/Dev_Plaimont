@@ -17,6 +17,9 @@ namespace APIComptageVDG.Provider
         private string _token = string.Empty ;
         public TokenResponse token;
 
+
+        public bool successConfig { get => (!string.IsNullOrEmpty(_tokenUrl) && !string.IsNullOrEmpty(_apiUrl) && !string.IsNullOrEmpty(_username) && !string.IsNullOrEmpty(_password)); }  
+
         public InstagrappeApiProvider(string tokenUrl, string apiUrl, string username, string password)
         {
             _tokenUrl = tokenUrl;

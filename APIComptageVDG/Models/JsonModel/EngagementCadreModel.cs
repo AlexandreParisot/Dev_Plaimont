@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace APIComptageVDG.Models.JsonModel
 {
@@ -10,7 +11,7 @@ namespace APIComptageVDG.Models.JsonModel
         public string nom_parcelle { get; set; }
         public string cepage { get; set; }
         public double? surface { get; set; }
-        public string nom_prestataire { get; set; }
+        public string? nom_prestataire { get; set; }
         public double? tonnage_estime { get; set; }
         public object? surface_non_vendangee { get; set; }
         public string qualite { get; set; }
@@ -18,12 +19,13 @@ namespace APIComptageVDG.Models.JsonModel
         public string num_parcelle { get; set; }
         public double? surface_vendangee { get; set; }
         public double? tonnage_a_vendanger { get; set; }
-        public string vers_grappe_authorize { get; set; }
-        public string perforation_1_readonly { get; set; }
-        public string perforation_2_readonly { get; set; }
-
+        public string? vers_grappe_authorize { get; set; }
+        public string? perforation_1_readonly { get; set; }
+        public string? perforation_2_readonly { get; set; }
+        public string? glomerule_readonly { get; set; }
     }
-    public class Engagements_cadre
+
+    public class Engagement_cadre
     {
         public string v_num_engagement_cadre { get; set; }
         public string v_person_typ { get; set; }
@@ -31,13 +33,14 @@ namespace APIComptageVDG.Models.JsonModel
         public string v_code_activite { get; set; }
         public string v_code_campagne { get; set; }
 
-        [JsonPropertyName("complement")]
+        [JsonPropertyName("complements")]
         public ComplementsEngagements_cadre complements { get; set; }
 
     }
     public class EngagementCadreModel
     {
-        public IList<Engagements_cadre> engagements_cadre { get; set; }
+        [JsonProperty("engagements_cadre")]
+        public IList<Engagement_cadre> engagement_cadre { get; set; }
 
     }
 }

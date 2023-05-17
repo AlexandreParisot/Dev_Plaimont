@@ -268,12 +268,12 @@ namespace ComptageVDG.ViewModels
                         else
                         {
                            
-                            if (glome?.DateDebut != DatedebGlomerule && DatedebGlomerule > DateTime.Today)
+                            if (glome?.DateDebut != DatedebGlomerule)
                             {
                                 glome!.DateDebut = DatedebGlomerule.Value;
                                 isDirty = true;
                             }
-                            if (glome?.DateFin != DatefinGlomerule && DatefinGlomerule > DateTime.Today)
+                            if (glome?.DateFin != DatefinGlomerule )
                             {
                                 glome!.DateFin = DatefinGlomerule.Value;
                                 isDirty = true;
@@ -306,13 +306,13 @@ namespace ComptageVDG.ViewModels
                             return;
                         }
                         else {
-                            if (perfo?.DateDebut != DatedebPerforation && DatedebPerforation > DateTime.Today)
+                            if (perfo?.DateDebut != DatedebPerforation)
                             {
                                 perfo!.DateDebut = DatedebPerforation.Value;
                                 isDirty = true;
                             }
 
-                            if (perfo?.DateFin != DatefinPerforation && DatefinPerforation > DateTime.Today)
+                            if (perfo?.DateFin != DatefinPerforation)
                             {
                                 perfo!.DateFin = DatefinPerforation.Value;
                                 isDirty = true;
@@ -344,13 +344,13 @@ namespace ComptageVDG.ViewModels
                         }
                         else
                         {
-                            if (perfo2?.DateDebut != DatedebPerforation2 && DatedebPerforation2 > DateTime.Today)
+                            if (perfo2?.DateDebut != DatedebPerforation2)
                             {
                                 perfo2!.DateDebut = DatedebPerforation2.Value;
                                 isDirty = true;
                             }                            
 
-                            if (perfo2?.DateFin != DatefinPerforation2 && DatefinPerforation2 > DateTime.Today)
+                            if (perfo2?.DateFin != DatefinPerforation2)
                             {
                                 perfo2!.DateFin = DatefinPerforation2.Value;
                                 isDirty = true;
