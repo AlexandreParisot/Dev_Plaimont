@@ -142,17 +142,15 @@ namespace APIComptageVDG.Controllers
                     {
                         //archive le fichier json
                         System.IO.Directory.CreateDirectory(System.IO.Path.Combine(Gestion.Current_Dir, "API", "Reussi"));
-                        if (result.success)
-                        {
-                            System.IO.File.Copy(Path, System.IO.Path.Combine(Gestion.Current_Dir, "API", "Reussi", System.IO.Path.GetFileName(Path)),true);
-                            System.IO.File.Delete(Path);
-                        }
+                        System.IO.Directory.CreateDirectory(System.IO.Path.Combine(Gestion.Current_Dir, "API", "Echec"));
+                        if (result.success)                        
+                            System.IO.File.Copy(Path, System.IO.Path.Combine(Gestion.Current_Dir, "API", "Reussi", System.IO.Path.GetFileName(Path)),true);                           
                         else
-                        {
                             System.IO.File.Copy(Path, System.IO.Path.Combine(Gestion.Current_Dir, "API", "Echec", System.IO.Path.GetFileName(Path)), true);
-                            System.IO.File.Delete(Path);
-                        }
-                    }catch(Exception ex)
+                       
+                        System.IO.File.Delete(Path);
+                    }
+                    catch(Exception ex)
                     {
                         Gestion.Erreur($"Erreur Archivage fichier : {System.IO.Path.GetFileName(Path)} - {ex.Message}");
                     }
