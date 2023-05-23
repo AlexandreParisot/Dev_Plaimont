@@ -47,7 +47,7 @@ namespace APIComptageVDG.Models.JsonModel
         public string v_num_engagement_cadre { get; set; }
         public string v_raison_sociale { get; set; }
         public int? i_uid_concern { get; set; }
-        public string v_person_typ { get; set; }
+        public string? v_person_typ { get; set; }
         public string v_prenom { get; set; }
         public double? tonnage_a_vendanger { get; set; }
         public string nb_glomerules { get; set; }

@@ -3,6 +3,7 @@ using APIComptageVDG.Models;
 using APIComptageVDG.Models.JsonModel;
 using APIComptageVDG.Provider;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.VisualBasic;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices.ObjectiveC;
 
@@ -295,6 +296,81 @@ namespace APIComptageVDG.Services
 
 
 
+        public async Task<ReponseApi> GenerateEngagementVDGInstagrappe(IEnumerable<ParcelleModel> parcelles, int annee)
+        {
+            if (parcelles == null)
+                parcelles = new List<ParcelleModel>();
+
+          
+            var result = await GetEngagementVersDeGrappe(annee);
+            if (result.success && result.result is Engagements engagements)
+            {
+                Engagements ListSend = new Engagements();
+                var ParcelleOuverteInstagrappe = mappingParcellesToEngagement(parcelles.ToList(), annee);
+                if (ParcelleOuverteInstagrappe.engagements.Count > 0 && engagements.engagements.Count > 0)
+                {
+                    var lstInstOuvert = new List<EngagementModel>();
+                    foreach (EngagementModel instaEngagementCardre in engagements.engagements)
+                    {
+                        var trouve = false;
+                        //if (instaEngagementCardre.complements != null)
+                        //    instaEngagementCardre.complements. = "non";
+
+                        foreach (EngagementModel ouvertureParcelle in ParcelleOuverteInstagrappe.engagements)
+                        {
+                            if (instaEngagementCardre.v_num_engagement == ouvertureParcelle.v_num_engagement)
+                            {
+                                trouve = true;
+                            }
+                        }
+                        if (!trouve)
+                            lstInstOuvert.Add(instaEngagementCardre);
+                    }
+                    if (lstInstOuvert.Count > 0)
+                    {
+                        ParcelleOuverteInstagrappe.engagements.ToList().AddRange(lstInstOuvert);
+                    }
+
+                    ListSend = ParcelleOuverteInstagrappe;
+                    //engagements.engagements_cadre.Where(engagements => ParcelleOuverteInstagrappe.engagements_cadre.ToList().ForEach(e => e.v_num_engagement_cadre != engagements.v_num_engagement_cadre));
+                }
+                else if (engagements.engagements.Count > 0)
+                {
+                    //foreach (EngagementModel instaEngagementCardre in engagements.engagements)
+                    //{
+                    //    if (instaEngagementCardre.complements != null)
+                    //        instaEngagementCardre.complements.vers_grappe_authorize = "non";
+                    //}
+                    ListSend = engagements;
+                }
+                else if (ParcelleOuverteInstagrappe.engagements.Count > 0)
+                {
+                    ListSend = ParcelleOuverteInstagrappe;
+                }
+
+                if (ListSend.engagements != null && ListSend.engagements.Count > 0)
+                {
+                    var nameFileJson = $"apport_{DateTime.Now.ToString("yyyyMMddHHmmss")}.json";
+                    var strContentFile = @$"{{
+                                                ""incremental"": {{
+                                                    ""upsert"": 
+                                                            {JsonSerialize.Serialize(ListSend)}                                                              
+                                                    }}
+                                            }}";
+
+                    System.IO.File.WriteAllText(nameFileJson, strContentFile);
+
+                    return new(nameFileJson, true);
+                }
+            }
+            else
+                Gestion.Erreur($"Etat : {result.success} - reponse : {result.result}");
+
+            return new(string.Empty);
+        }
+
+
+
         private EngagementCadreModel mappingParcellesToEngagementCadre(List<ParcelleModel> parcelles, List<PeriodeModel> periodes, int annee)
         {
             var engagements = new EngagementCadreModel();
@@ -330,7 +406,7 @@ namespace APIComptageVDG.Services
                     engagements_cadre.v_num_engagement_cadre = $"{annee}_{parcelle.id_parcelle}";
                     engagements_cadre.v_code_campagne = $"{annee}";
                     engagements_cadre.i_person_num = parcelle.id_propriete;
-                    engagements_cadre.v_code_activite = "ADHERENT";
+                    engagements_cadre.v_code_activite = "PARCELLE";
                     engagements_cadre.complements = new ComplementsEngagements_cadre();
                     var complement = engagements_cadre.complements;
 
@@ -360,6 +436,41 @@ namespace APIComptageVDG.Services
             return engagements;
 
         }
+
+        private Engagements mappingParcellesToEngagement(List<ParcelleModel> parcelles, int annee)
+        {
+            var engagements = new Engagements();
+            engagements.engagements = new List<EngagementModel>();
+            
+            foreach (ParcelleModel parcelle in parcelles)
+            {
+                try
+                {
+                    EngagementModel engagement = new EngagementModel();
+                    engagement.v_person_typ = "ADHERENT";
+                    engagement.v_num_engagement_cadre = $"{parcelle.id_propriete}__{annee}_MODEL_VERS_DE_GRAPPE_{annee}_{parcelle.id_parcelle}";
+                    engagement.v_code_campagne = $"{annee}";
+                    engagement.i_person_num = parcelle.id_propriete;
+                    engagement.v_code_activite = "PARCELLE";
+                    engagement.v_code_commercialisation = "VERS_DE_GRAPPE";
+                    engagement.complements = new Complements();
+                    var complement = engagement.complements;
+
+                    complement.statut_inscription = "OUVERTE";
+                    complement.cont_date = $"{DateAndTime.Today.ToString("yyyy-MM-dd")}";
+                    complement.v_code_modele = "MODELE_VERS_DE_GRAPPE";
+                    complement.i_person_num = parcelle.id_propriete.ToString();
+                    complement.v_person_typ = "ADHERENT";
+                }
+                catch (Exception ex)
+                {
+                    Gestion.Erreur($"Parcelle : {parcelle.id_parcelle} - {parcelle.ut} / {ex.Message} ");
+                }
+            }
+            return engagements;
+
+        }
+
     }
 
 

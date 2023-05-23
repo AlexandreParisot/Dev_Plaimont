@@ -220,6 +220,26 @@ namespace APIComptageVDG.Controllers
 
         }
 
+        /// <summary>
+        /// Génére le fichier engagement pour le vers de grappe.
+        /// constitu le fichier json.
+        /// </summary>
+        /// <returns>retourne le nom du fichier json a lancer a l'import. sinon retourne rien.</returns>
+        [HttpGet("Instagrappe/GenerateEngagementVDG")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<string>> GenerateEngagementVDGInstagrappe()
+        {
+            string fileJson = string.Empty;
+
+            var listParcelle = await _service.AsyncGetParcellesInCampagne(int.Parse(DateTime.Today.ToString("yyyy")));
+          
+            var result = await _instaService.GenerateEngagementVDGInstagrappe(listParcelle, int.Parse(DateTime.Today.ToString("yyyy")));
+            return result.success ? Ok(result?.result) : BadRequest(result?.result);
+
+
+        }
+
 
 
         /// <summary>
