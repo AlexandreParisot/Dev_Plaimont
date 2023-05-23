@@ -11,7 +11,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:uc="clr-namespace:ComptageVDG.Views"
     xmlns:viewmodels="clr-namespace:ComptageVDG.ViewModels"
-    Title="Comptage vers de grappes"
+    Title="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, FallbackValue='Comptage Vers de grappe'}"
     d:DesignHeight="900"
     d:DesignWidth="1200"
     Closing="Window_Closing"
@@ -71,9 +71,14 @@
             VerticalAlignment="Center"
             MenuOrientation="Horizontal">
             <ig:XamMenuItem Header="Fichier">
-                <ig:XamMenuItem Command="{Binding OpenDialogConnexionCommand}" Header="Paramétres">
+                <ig:XamMenuItem Command="{Binding OpenDialogConnexionCommand}" Header="Paramètres">
                     <ig:XamMenuItem.Icon>
                         <Image Source="{Binding Source='/Views/Images/icons8-settings-64.png'}" />
+                    </ig:XamMenuItem.Icon>
+                </ig:XamMenuItem>
+                <ig:XamMenuItem Command="{Binding AccueilCommand}" Header="Accueil">
+                    <ig:XamMenuItem.Icon>
+                        <Image Source="{Binding Source='/Views/Images/icons8-home-64.png'}" />
                     </ig:XamMenuItem.Icon>
                 </ig:XamMenuItem>
                 <ig:XamMenuItem Command="{Binding PeriodeCommand}" Header="Période Campagne">

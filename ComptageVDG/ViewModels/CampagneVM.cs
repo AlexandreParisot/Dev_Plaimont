@@ -19,8 +19,16 @@ namespace ComptageVDG.ViewModels
    
         public string LastSynchro { get => _lastSynchro; set=> SetProperty(ref _lastSynchro,value); }
 
+        private string _colorGlomerule;
+        public string ColorGlomerule { get => _colorGlomerule; set => SetProperty(ref _colorGlomerule,value); }
 
-       public RelayCommand RefreshCommand { get; set; }
+        private string _colorPerforation;
+        public string ColorPerforation { get => _colorPerforation; set => SetProperty(ref _colorPerforation, value); }
+
+        private string _colorPerforation2;
+        public string ColorPerforation2 { get => _colorPerforation2; set => SetProperty(ref _colorPerforation2, value); }
+
+        public RelayCommand RefreshCommand { get; set; }
 
         //public delegate void RaiseNotif(Notification Me);
         
@@ -50,6 +58,7 @@ namespace ComptageVDG.ViewModels
                     ShowLoading($"Chargement de la campagne {dateCp}");
                     LoadParcelles(dateCp);
                     asyncGetLastSynchro().GetAwaiter();
+                    ColorCompteur(dateCp).GetAwaiter();
                     ClearLoading();
                 }
             }
@@ -71,7 +80,7 @@ namespace ComptageVDG.ViewModels
                 return;
 
             ParcelleModelsinCampagne = await ServiceCampagne.asyncLoadYearInCampagne(dateCp);
-            
+            await ColorCompteur(dateCp);
         }
 
         private async Task asyncGetLastSynchro()
@@ -79,6 +88,43 @@ namespace ComptageVDG.ViewModels
             LastSynchro = await ServiceCampagne.getTimeSynchroCampagne();
         }
 
+        public async Task ColorCompteur(string dateCp)
+        {
+            ColorGlomerule = string.Empty;
+            ColorPerforation = string.Empty;
+            ColorPerforation2 = string.Empty;
+            if (string.IsNullOrEmpty(dateCp))
+                return;
+
+            var lstPeriode = await ServiceCampagne.asyncGetPeriodeCampagne(dateCp);
+            if(lstPeriode != null && lstPeriode.Count >0)
+            {
+                var glomerule = lstPeriode.FirstOrDefault(x => x.Name.ToLower() == "glomerule");
+                if(glomerule != null)
+                {
+                    if (glomerule.DateDebut <= DateTime.Today && glomerule.DateFin >= DateTime.Today)
+                        ColorGlomerule = "#89f09f"; 
+                    else
+                        ColorGlomerule = "#f58e87";
+                }
+                var perfo = lstPeriode.FirstOrDefault(x => x.Name.ToLower() == "perforation");
+                if (perfo != null)
+                {
+                    if (perfo.DateDebut <= DateTime.Today && perfo.DateFin >= DateTime.Today)
+                        ColorPerforation = "#89f09f"; 
+                    else
+                        ColorPerforation = "#f58e87";
+                }
+                var perfo2 = lstPeriode.FirstOrDefault(x => x.Name.ToLower() == "perforation");
+                if (perfo2 != null)
+                {
+                    if (perfo2.DateDebut <= DateTime.Today && perfo2.DateFin >= DateTime.Today)
+                        ColorPerforation2 = "#89f09f"; 
+                    else
+                        ColorPerforation2 = "#f58e87";
+                }
+            }
+        }
 
         private  void LoadParcelles(string dateCp)
         {            
@@ -88,6 +134,7 @@ namespace ComptageVDG.ViewModels
           Dispatcher.CurrentDispatcher.BeginInvoke(new Action(() => {
               ParcelleModelsinCampagne = ServiceCampagne.asyncLoadYearInCampagne(DateCampagne).GetAwaiter().GetResult();
                asyncGetLastSynchro().GetAwaiter();
+              ColorCompteur(dateCp).GetAwaiter();
           }));
                return;
         }

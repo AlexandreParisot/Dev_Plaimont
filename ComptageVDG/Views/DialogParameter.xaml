@@ -48,7 +48,7 @@
         <Label
             Grid.ColumnSpan="3"
             VerticalAlignment="Center"
-            Content="Paramètrage application "
+            Content="Paramétrage application "
             FontWeight="Bold" />
         <Label
             Grid.Row="1"

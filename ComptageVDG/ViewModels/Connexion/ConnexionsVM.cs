@@ -55,11 +55,11 @@ namespace ComptageVDG.ViewModels.Connexion
         private void TestConnexion()
         {
             if(!saveSettings())
-                MessageBox.Show("Impossible de sauvegarder la configuration de l'applicaiton.");
+                MessageBox.Show("Impossible de sauvegarder la configuration de l'applicaiton.","Comptage vers de grappe", MessageBoxButton.OK, MessageBoxImage.Error);
 
             if (controlAccessConnexion())
             {
-                MessageBox.Show("Connexion Reussi.");
+                MessageBox.Show("Connexion Réussi.","Comptage vers de grappe",MessageBoxButton.OK,MessageBoxImage.Information);
                 raiseCloseEvent();
             }
                
@@ -79,7 +79,7 @@ namespace ComptageVDG.ViewModels.Connexion
             {
                 if (string.IsNullOrEmpty(LoadApp.IniModel?.UrlService))
                 {
-                    MessageBox.Show("Aucun accés aux données est paramétré.");
+                    MessageBox.Show("Aucun accés aux données est paramétré.","Comptage vers de grappe", MessageBoxButton.OK, MessageBoxImage.Warning);
                     Connexion!.Instance = null;
                     return false;
                 }
@@ -91,7 +91,7 @@ namespace ComptageVDG.ViewModels.Connexion
 
                 if (Connexion!.Instance == null || (!Connexion!.Instance!.Open() && !Connexion.Instance.IsConnected))
                 {
-                    MessageBox.Show("Impossible d'accéder aux données.");
+                    MessageBox.Show("Impossible d'accéder aux données.","Comptage vers de grappe", MessageBoxButton.OK, MessageBoxImage.Error);
                     return false;
                 }
 

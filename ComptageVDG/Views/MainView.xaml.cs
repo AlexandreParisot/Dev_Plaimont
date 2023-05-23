@@ -89,7 +89,7 @@ namespace ComptageVDG.Views
                 ucType = Type.GetType(controlName);
                 if (ucType == null)
                 {
-                    MessageBox.Show("Ce module n'existe pas : " + controlName);
+                    MessageBox.Show("Ce module n'existe pas : " + controlName , "Comptage vers de grappe", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
                 else
                 {

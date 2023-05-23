@@ -27,6 +27,8 @@ namespace ComptageVDG.Views
             this.DataContext = new CampagneVM(); //(CampagneVM) this.Resources["viewModel"];
             if (((CampagneVM)this.DataContext).ParcelleModelsinCampagne == null)
                 ((CampagneVM)this.DataContext).RefreshCommand.Execute(this);
+            else
+                ((CampagneVM)this.DataContext).ColorCompteur(((CampagneVM)this.DataContext).DateCampagne);
         }
 
         private void UserControl_Unloaded(object sender, RoutedEventArgs e)

@@ -19,12 +19,14 @@ namespace ComptageVDG.ViewModels
     internal class MainVm:BaseViewModel
     {
         
+        private string _name;
+        public string Name { get => _name; set => SetProperty(ref _name, value); }
 
         public RelayCommand SynchroInstagrappeCommand { get; set; } 
         public RelayCommand OpenDialogConnexionCommand { get; set; }
         public RelayCommand PeriodeCommand { get; set; }
         public RelayCommand DeclarationCommand { get; set; }
-
+        public RelayCommand AccueilCommand { get; set; }
 
         public event EventHandler LoadUC;
 
@@ -40,7 +42,8 @@ namespace ComptageVDG.ViewModels
             SynchroInstagrappeCommand = new RelayCommand(SynchroPeriodeInstaGrappeCommandExecute);
 
             DeclarationCommand = new RelayCommand(() => { toggleView("Parcelle"); });
-            PeriodeCommand = new RelayCommand(() => { toggleView("Periode"); });    
+            PeriodeCommand = new RelayCommand(() => { toggleView("Periode"); });
+            AccueilCommand = new RelayCommand(() => { toggleView("Campagne"); });
             
         }
 
@@ -185,13 +188,16 @@ namespace ComptageVDG.ViewModels
             switch (View)
             {
                 case "Campagne":
-                    UcLoad(typeof(CampagneView).FullName);                   
+                    UcLoad(typeof(CampagneView).FullName);
+                    Name = $"Comptage Vers de grappe - Accueil";
                     break;
                 case "Periode":
                     UcLoad(typeof(PeriodeView).FullName);
+                    Name = $"Comptage Vers de grappe - Périodes campagne";
                     break;
                 case "Parcelle":
                     UcLoad(typeof(ParcelleView).FullName);
+                    Name = $"Comptage Vers de grappe - Sélection parcelles"; 
                     break;
             }
 

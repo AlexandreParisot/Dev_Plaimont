@@ -18,7 +18,7 @@ namespace ComptageVDG.ViewModels
 
         public async Task<bool> loadApplication()
         {
-            StrLoading = "Verfication fichier de configuration ...";
+            StrLoading = "Verification fichier de configuration ...";
             await Task.Delay(TimeSpan.FromSeconds(1));
             if (!LoadApp.FileIniExist)
             {
@@ -26,13 +26,13 @@ namespace ComptageVDG.ViewModels
                 return false;
             }
 
-            StrLoading = "Chargement des paramétres de configuration ...";
+            StrLoading = "Chargement des paramètres de configuration ...";
            
             await Task.Delay(TimeSpan.FromSeconds(1));
             
             if (LoadApp.IniModel == null)
             {
-                lastErreur = "Les paramétres de configuration ne sont pas correct.";
+                lastErreur = "Les paramètres de configuration ne sont pas correct.";
                 return false;
             }
                 
@@ -53,7 +53,7 @@ namespace ComptageVDG.ViewModels
            
 
             if(Connexion!.Instance != null && Connexion.Instance.IsConnected)
-                StrLoading = $"Connexion reussie : {LoadApp.IniModel.UrlService}";
+                StrLoading = $"Connexion réussie : {LoadApp.IniModel.UrlService}";
             else
             {
                 lastErreur = "La connexion a échoué.";

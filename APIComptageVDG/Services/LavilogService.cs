@@ -278,25 +278,7 @@ namespace APIComptageVDG.Services
                    , P.ID_vPropriete    id_propriete                                                                                                                                                      
                    , NOTE.[Note : Appellation de travail] appellation                                                                                                                        
                    , TMP.Travail_CepageMajoritaire cepage                                                                                                                                   
-                   , CASE WHEN NOTE.[Note : Site de vendange] <> 'CONDOM' THEN                                                                                                               
-                                                                                                  (SELECT TOP 1 O2.[Qualité de classement]                                                  
-                                                                                                  FROM vObservation O2                                                                      
-                                                                                                                  INNER JOIN vAction A2 ON A2.ID_vAction = O2.ID_vAction                    
-                                                                                                                  INNER JOIN vActionUniteTravail AUT2 ON AUT2.ID_vAction = A2.ID_vAction    
-                                                                                                  WHERE O2.ID_vObservationProgramme = 2                                                     
-                                                                                                                  AND AUT2.ID_vUniteTravail = UT.ID_vUniteTravail                           
-                                                                                                  ORDER BY A2.Action_Date DESC                                                              
-                                                                                                  )                                                                                         
-                                                   ELSE                                                                                                                                     
-                                                                   (SELECT TOP 1 O2.[Qualité classement COND]                                                                               
-                                                                                                  FROM vObservation O2                                                                      
-                                                                                                                  INNER JOIN vAction A2 ON A2.ID_vAction = O2.ID_vAction                    
-                                                                                                                  INNER JOIN vActionUniteTravail AUT2 ON AUT2.ID_vAction = A2.ID_vAction    
-                                                                                                  WHERE O2.ID_vObservationProgramme = 126                                                   
-                                                                                                                  AND AUT2.ID_vUniteTravail = UT.ID_vUniteTravail                           
-                                                                                                  ORDER BY A2.Action_Date DESC                                                              
-                                                                                                  )                                                                                         
-                                                   END qualite                                                                                                                              
+                   , NOTE.[Note : Qualité] qualite                                                                                                   
                    , NOTE.[Note : Prestataire] prestataire                                                                                                                                   
                    , NOTE.[Note : Type de récolte] type_vendange                                                                                                                              
                    , NOTE.[Note : Site de vendange] site_vendange                                                                                                                             
@@ -315,7 +297,7 @@ namespace APIComptageVDG.Services
     from [LAVILOG_TEST_M3].dbo.vUniteTravail UT                                                                                                                                                               
                    inner join dbo.vPropriete P on P.ID_vPropriete = UT.ID_vPropriete                                                                                                        
                    inner join dbo.pTmpTravailCompoColonne TMP on TMP.ID_vUniteTravail = UT.ID_vUniteTravail                                                                                 
-                   left  join dbo.pTmpNoteColonne_vUniteTravail NOTE ON NOTE.ID_Target = UT.ID_vUniteTravail                                                                                
+                   left  join dbo.pTmpNoteColonne_vUniteTravail NOTE ON NOTE.ID_Target = UT.ID_vUniteTravail 
                    left  join dbo.vRecolte R on R.ID_vUniteTravail = UT.ID_vUniteTravail and year(R.Recolte_Date) = year(getdate()) 
 				   inner join dbo.tNote tN on  tN.ID_Target = UT.ID_vUniteTravail and tN.Note_Categorie = 'CVDG' and tN.Note_Valeur = '{year}'
     where(UT.UniteTravail_Archive = 0 OR UT.UniteTravail_Archive IS NULL)                                                                                                                   
@@ -353,22 +335,22 @@ namespace APIComptageVDG.Services
                                         )                                                                                                                                                   
             )                                                                                                                                                                               
     group by UT.ID_vUniteTravail   
-					,  UT.UniteTravail_Code
+				   ,  UT.UniteTravail_Code
                    , UT.UniteTravail_Libelle                                                                                                                                                
                    , UT.UniteTravail_Libelle2                                                                                                                                               
                    , P.Propriete_Libelle                                                                                                                                                    
                    , P.ID_vPropriete                                                                                                                                                        
                    , NOTE.[Note : Appellation de travail]                                                                                                                                   
-                  , TMP.Travail_CepageMajoritaire                                                                                                                                          
+                   , TMP.Travail_CepageMajoritaire                                                                                                                                          
                    , TMP.Travail_Superficie                                                                                                                                                 
                    , NOTE.[Note : Qualité]                                                                                                                                                 
                    , NOTE.[Note : Prestataire]                                                                                                                                             
                    , NOTE.[Note : Type de récolte]                                                                                                                                        
                    , NOTE.[Note : Site de vendange]                                                                                                                                        
                    , NOTE.[Note : Vendanges - Totalement vendangée]    
-				 ,tN.Note_Valeur
-				 ,ut.UniteTravail_Site
-				  , NOTE.[Note : Site de vendange]";
+				   , tN.Note_Valeur
+				   , ut.UniteTravail_Site
+				   , NOTE.[Note : Site de vendange]";
 
 
                 result = connection.Query<ParcelleModel>(req).ToList();
@@ -398,25 +380,7 @@ namespace APIComptageVDG.Services
                    , P.ID_vPropriete    id_propriete                                                                                                                                                      
                    , NOTE.[Note : Appellation de travail] appellation                                                                                                                        
                    , TMP.Travail_CepageMajoritaire cepage                                                                                                                                   
-                   , CASE WHEN NOTE.[Note : Site de vendange] <> 'CONDOM' THEN                                                                                                               
-                                                                                                  (SELECT TOP 1 O2.[Qualité de classement]                                                  
-                                                                                                  FROM vObservation O2                                                                      
-                                                                                                                  INNER JOIN vAction A2 ON A2.ID_vAction = O2.ID_vAction                    
-                                                                                                                  INNER JOIN vActionUniteTravail AUT2 ON AUT2.ID_vAction = A2.ID_vAction    
-                                                                                                  WHERE O2.ID_vObservationProgramme = 2                                                     
-                                                                                                                  AND AUT2.ID_vUniteTravail = UT.ID_vUniteTravail                           
-                                                                                                  ORDER BY A2.Action_Date DESC                                                              
-                                                                                                  )                                                                                         
-                                                   ELSE                                                                                                                                     
-                                                                   (SELECT TOP 1 O2.[Qualité classement COND]                                                                               
-                                                                                                  FROM vObservation O2                                                                      
-                                                                                                                  INNER JOIN vAction A2 ON A2.ID_vAction = O2.ID_vAction                    
-                                                                                                                  INNER JOIN vActionUniteTravail AUT2 ON AUT2.ID_vAction = A2.ID_vAction    
-                                                                                                  WHERE O2.ID_vObservationProgramme = 126                                                   
-                                                                                                                  AND AUT2.ID_vUniteTravail = UT.ID_vUniteTravail                           
-                                                                                                  ORDER BY A2.Action_Date DESC                                                              
-                                                                                                  )                                                                                         
-                                                   END qualite                                                                                                                              
+                   , NOTE.[Note : Qualité] qualite                                                                                                   
                    , NOTE.[Note : Prestataire] prestataire                                                                                                                                   
                    , NOTE.[Note : Type de récolte] type_vendange                                                                                                                              
                    , NOTE.[Note : Site de vendange] site_vendange                                                                                                                             
@@ -435,9 +399,9 @@ namespace APIComptageVDG.Services
     from [LAVILOG_TEST_M3].dbo.vUniteTravail UT                                                                                                                                                               
                    inner join dbo.vPropriete P on P.ID_vPropriete = UT.ID_vPropriete                                                                                                        
                    inner join dbo.pTmpTravailCompoColonne TMP on TMP.ID_vUniteTravail = UT.ID_vUniteTravail                                                                                 
-                   left  join dbo.pTmpNoteColonne_vUniteTravail NOTE ON NOTE.ID_Target = UT.ID_vUniteTravail                                                                                
+                   left  join dbo.pTmpNoteColonne_vUniteTravail NOTE ON NOTE.ID_Target = UT.ID_vUniteTravail 
                    left  join dbo.vRecolte R on R.ID_vUniteTravail = UT.ID_vUniteTravail and year(R.Recolte_Date) = year(getdate()) 
-				   left  join dbo.tNote tN on  tN.ID_Target = UT.ID_vUniteTravail and tN.Note_Categorie = 'CVDG' and tN.Note_Valeur = '{year}'
+				   left join dbo.tNote tN on  tN.ID_Target = UT.ID_vUniteTravail and tN.Note_Categorie = 'CVDG' and tN.Note_Valeur = '{year}'
     where(UT.UniteTravail_Archive = 0 OR UT.UniteTravail_Archive IS NULL)                                                                                                                   
         --AND TMP.Travail_Superficie > 0                                                                                                                                                    
         and P.Portail = 1                                                                                                                                                                   
@@ -473,22 +437,22 @@ namespace APIComptageVDG.Services
                                         )                                                                                                                                                   
             )                                                                                                                                                                               
     group by UT.ID_vUniteTravail   
-					,  UT.UniteTravail_Code
+				   ,  UT.UniteTravail_Code
                    , UT.UniteTravail_Libelle                                                                                                                                                
                    , UT.UniteTravail_Libelle2                                                                                                                                               
                    , P.Propriete_Libelle                                                                                                                                                    
                    , P.ID_vPropriete                                                                                                                                                        
                    , NOTE.[Note : Appellation de travail]                                                                                                                                   
-                  , TMP.Travail_CepageMajoritaire                                                                                                                                          
+                   , TMP.Travail_CepageMajoritaire                                                                                                                                          
                    , TMP.Travail_Superficie                                                                                                                                                 
                    , NOTE.[Note : Qualité]                                                                                                                                                 
                    , NOTE.[Note : Prestataire]                                                                                                                                             
                    , NOTE.[Note : Type de récolte]                                                                                                                                        
                    , NOTE.[Note : Site de vendange]                                                                                                                                        
                    , NOTE.[Note : Vendanges - Totalement vendangée]    
-				 ,tN.Note_Valeur
-				 ,ut.UniteTravail_Site
-				  , NOTE.[Note : Site de vendange]";
+				   , tN.Note_Valeur
+				   , ut.UniteTravail_Site
+				   , NOTE.[Note : Site de vendange]";
 
 
 

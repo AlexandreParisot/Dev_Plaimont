@@ -59,10 +59,10 @@ namespace ComptageVDG.Views
                     mainWindow.Show();
                 }
                 else               
-                    MessageBox.Show(splashVm.lastErreur);               
+                    MessageBox.Show(splashVm.lastErreur,"Comptage vers de grappe", MessageBoxButton.OK, MessageBoxImage.Error);               
             }
             else
-               MessageBox.Show(splashVm.lastErreur);
+               MessageBox.Show(splashVm.lastErreur,"Comptage vers de grappe", MessageBoxButton.OK, MessageBoxImage.Error);
           
             // Fermer l'écran de démarrage
             this.Close();

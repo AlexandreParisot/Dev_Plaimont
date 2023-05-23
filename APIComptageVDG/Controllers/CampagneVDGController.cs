@@ -143,8 +143,11 @@ namespace APIComptageVDG.Controllers
                         //archive le fichier json
                         System.IO.Directory.CreateDirectory(System.IO.Path.Combine(Gestion.Current_Dir, "API", "Reussi"));
                         System.IO.Directory.CreateDirectory(System.IO.Path.Combine(Gestion.Current_Dir, "API", "Echec"));
-                        if (result.success)                        
-                            System.IO.File.Copy(Path, System.IO.Path.Combine(Gestion.Current_Dir, "API", "Reussi", System.IO.Path.GetFileName(Path)),true);                           
+                        if (result.success)
+                        {
+                            System.IO.File.Copy(Path, System.IO.Path.Combine(Gestion.Current_Dir, "API", "Reussi", System.IO.Path.GetFileName(Path)), true);
+                            await _service.AsyncSetLastSynchro();
+                        }                                                  
                         else
                             System.IO.File.Copy(Path, System.IO.Path.Combine(Gestion.Current_Dir, "API", "Echec", System.IO.Path.GetFileName(Path)), true);
                        

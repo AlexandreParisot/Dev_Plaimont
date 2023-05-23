@@ -25,6 +25,10 @@
             </ResourceDictionary.MergedDictionaries>
             <!--<viewmodel:CampagneVM x:Key="viewModel" />-->
             <converter:DebugConverter x:Key="DebugConverter" />
+
+            <Style x:Key="ut" TargetType="{x:Type igDP:CellValuePresenter}">
+                <Setter Property="FontWeight" Value="Bold" />
+            </Style>
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid x:Name="LayoutRoot">
@@ -67,7 +71,7 @@
                     <TextBlock
                         Margin="5,0,0,0"
                         VerticalAlignment="Center"
-                        Text="{Binding LastSynchro, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat='Heure de la derniére synchro : {0}', TargetNullValue='aucune information', FallbackValue='aucune information'}" />
+                        Text="{Binding LastSynchro, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat='Heure de la dernière synchro : {0}', TargetNullValue='aucune information', FallbackValue='aucune information'}" />
                 </StackPanel>
                 <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
                     <igEditors:XamComboEditor
@@ -97,13 +101,44 @@
                             AllowHiding="Always"
                             AllowRecordFiltering="true"
                             AllowSorting="true"
+                            AllowSummaries="True"
+                            AutoSizeOptions="All"
                             FilterClearButtonVisibility="Visible"
-                            FilterLabelIconDropDownType="MultiSelectExcelStyle" />
+                            FilterLabelIconDropDownType="MultiSelectExcelStyle"
+                            SummaryDisplayArea="InGroupByRecords, BottomFixed" />
                     </igDP:XamDataGrid.FieldSettings>
 
                     <igDP:XamDataGrid.FieldLayouts>
 
                         <igDP:FieldLayout>
+
+                            <igDP:FieldLayout.SummaryDefinitions>
+                                <igDP:SummaryDefinition
+                                    Calculator="{x:Static igDP:SummaryCalculator.Count}"
+                                    PositionFieldName="site_technique"
+                                    SourceFieldName="ut"
+                                    StringFormat="Total={0}" />
+                                <igDP:SummaryDefinition
+                                    Calculator="{x:Static igDP:SummaryCalculator.Sum}"
+                                    PositionFieldName="surface"
+                                    SourceFieldName="surface"
+                                    StringFormat="Total={0:0.####} ha" />
+                                <igDP:SummaryDefinition
+                                    Calculator="{x:Static igDP:SummaryCalculator.Sum}"
+                                    PositionFieldName="cptGlomerule"
+                                    SourceFieldName="cptGlomerule"
+                                    StringFormat="{}{0}" />
+                                <igDP:SummaryDefinition
+                                    Calculator="{x:Static igDP:SummaryCalculator.Sum}"
+                                    PositionFieldName="cptPerforation1"
+                                    SourceFieldName="cptPerforation1"
+                                    StringFormat="{}{0}" />
+                                <igDP:SummaryDefinition
+                                    Calculator="{x:Static igDP:SummaryCalculator.Sum}"
+                                    PositionFieldName="cptPerforation2"
+                                    SourceFieldName="cptPerforation2"
+                                    StringFormat="{}{0}" />
+                            </igDP:FieldLayout.SummaryDefinitions>
 
                             <igDP:FieldLayout.Settings>
                                 <igDP:FieldLayoutSettings AutoGenerateFields="False" />
@@ -120,26 +155,65 @@
                                     Width="50"
                                     Label="Id UT"
                                     Visibility="Collapsed" />
-                                <igDP:TextField Name="ut" Label="UT" />
+                                <igDP:TextField Name="site_technique" Label="Site Technique" />
+                                <igDP:TextField Name="site_vendange" Label="Site Vendange" />
+                                <igDP:TextField Name="propriete" Label="Propriété" />
+                                <igDP:TextField Name="ut" Label="UT">
+                                    <igDP:Field.Settings>
+                                        <igDP:FieldSettings>
+                                            <igDP:FieldSettings.CellValuePresenterStyle>
+                                                <Style TargetType="{x:Type igDP:CellValuePresenter}">
+                                                    <Setter Property="FontWeight" Value="Bold" />
+                                                </Style>
+                                            </igDP:FieldSettings.CellValuePresenterStyle>
+                                        </igDP:FieldSettings>
+                                    </igDP:Field.Settings>
+                                </igDP:TextField>
                                 <igDP:TextField
                                     Name="nameParcelle"
                                     Label="Désignation"
                                     Visibility="Collapsed" />
-                                <igDP:TextField Name="nameParcelle2" Label="Désignation 2" />
-                                <igDP:TextField Name="propriete" Label="Propriété" />
+                                <igDP:TextField Name="nameParcelle2" Label="Lieu-dit" />
                                 <igDP:TextField Name="appellation" Label="Appellation" />
                                 <igDP:TextField Name="cepage" Label="Cépage" />
-                                <igDP:TextField Name="site_technique" Label="Site Technique" />
-                                <igDP:TextField Name="site_vendange" Label="Site Vendange" />
+                                <igDP:TextField Name="qualite" Label="Qualite" />
                                 <igDP:NumericField
                                     Name="surface"
-                                    Format="##0.000 ha"
+                                    Format="##0.0000 ha"
                                     Label="Surface" />
-                                <igDP:TextField Name="qualite" Label="Qualite" />
-
-                                <igDP:NumericField Name="cptGlomerule" Label="Glomérule" />
-                                <igDP:NumericField Name="cptPerforation1" Label="Perforation" />
-                                <igDP:NumericField Name="cptPerforation2" Label="Perforation 2" />
+                                <igDP:NumericField Name="cptGlomerule" Label="Glomérule">
+                                    <igDP:Field.Settings>
+                                        <igDP:FieldSettings>
+                                            <igDP:FieldSettings.CellValuePresenterStyle>
+                                                <Style TargetType="{x:Type igDP:CellValuePresenter}">
+                                                    <Setter Property="Background" Value="{Binding Path=DataPresenter.DataContext.ColorGlomerule, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=#EBEBA9}" />
+                                                </Style>
+                                            </igDP:FieldSettings.CellValuePresenterStyle>
+                                        </igDP:FieldSettings>
+                                    </igDP:Field.Settings>
+                                </igDP:NumericField>
+                                <igDP:NumericField Name="cptPerforation1" Label="Perforation">
+                                    <igDP:Field.Settings>
+                                        <igDP:FieldSettings>
+                                            <igDP:FieldSettings.CellValuePresenterStyle>
+                                                <Style TargetType="{x:Type igDP:CellValuePresenter}">
+                                                    <Setter Property="Background" Value="{Binding Path=DataPresenter.DataContext.ColorPerforation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=#EBEBA9}" />
+                                                </Style>
+                                            </igDP:FieldSettings.CellValuePresenterStyle>
+                                        </igDP:FieldSettings>
+                                    </igDP:Field.Settings>
+                                </igDP:NumericField>
+                                <igDP:NumericField Name="cptPerforation2" Label="Perforation 2">
+                                    <igDP:Field.Settings>
+                                        <igDP:FieldSettings>
+                                            <igDP:FieldSettings.CellValuePresenterStyle>
+                                                <Style TargetType="{x:Type igDP:CellValuePresenter}">
+                                                    <Setter Property="Background" Value="{Binding Path=DataPresenter.DataContext.ColorPerforation2, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=#EBEBA9}" />
+                                                </Style>
+                                            </igDP:FieldSettings.CellValuePresenterStyle>
+                                        </igDP:FieldSettings>
+                                    </igDP:Field.Settings>
+                                </igDP:NumericField>
                             </igDP:FieldLayout.Fields>
                         </igDP:FieldLayout>
                     </igDP:XamDataGrid.FieldLayouts>

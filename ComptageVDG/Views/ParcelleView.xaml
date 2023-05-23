@@ -28,6 +28,8 @@
             <SolidColorBrush x:Key="RedBrush" Color="#FFDC3F76" />
             <!--<viewmodel:ParcelleVM x:Key="viewModel" />-->
             <converter:DebugConverter x:Key="DebugConverter" />
+            <converter:VisibilityInvertConverter x:Key="VisibilityInvertConverter" />
+            <converter:BoolStringColorConverter x:Key="BoolStringColorConverter" />
             <converter:ComboDictionary x:Key="ComboYears" />
         </ResourceDictionary>
     </UserControl.Resources>
@@ -123,39 +125,43 @@
                         <Setter Property="Foreground" Value="#000" />
                     </Style>
 
-                    <!--<Style TargetType="{x:Type igDP:RecordSelector}"
-                       BasedOn="{x:Null}">
+                    <Style BasedOn="{x:Null}" TargetType="{x:Type igDP:RecordSelector}">
                         <Setter Property="Template">
                             <Setter.Value>
                                 <ControlTemplate TargetType="{x:Type igDP:RecordSelector}">
-                                    <Grid VerticalAlignment="Center" >
-                                        <CheckBox HorizontalAlignment="Center"
-                                               Margin="0,6,0,-6"
+                                    <Grid VerticalAlignment="Center">
+                                        <Border BorderThickness="1">
+                                            <CheckBox
+                                                Margin="0,6,0,-6"
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"
+                                                Command="{Binding ChangeStateCommand}"
+                                                CommandParameter="{Binding Path=DataItem}"
+                                                IsChecked="{Binding Path=DataItem.inCampagne, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                Visibility="{Binding Path=DataPresenter.DataContext.IsRead, Converter={StaticResource VisibilityInvertConverter}, FallbackValue=Collapsed}" />
+                                        </Border>
 
-                                          VerticalAlignment="Center"
-                                          Command="{Binding ChangeStateCommand}"
-                                          CommandParameter="{Binding Path=DataItem}"
-                                          IsChecked="{Binding Path=DataItem.inCampagne, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                     </Grid>
 
                                 </ControlTemplate>
                             </Setter.Value>
                         </Setter>
-                    </Style>-->
-
+                    </Style>
                     <!--  This Style puts a CheckBox into the header area above the record selectors.  -->
-                    <!--
-                    <Style TargetType="{x:Type igDP:HeaderPrefixArea}"
-                       BasedOn="{x:Null}">
-                        <Setter Property="Visibility"
-                            Value="Visible" />
+
+                    <!--<Style BasedOn="{x:Null}" TargetType="{x:Type igDP:HeaderPrefixArea}">
+                        <Setter Property="Visibility" Value="Visible" />
                         <Setter Property="Template">
                             <Setter.Value>
                                 <ControlTemplate TargetType="{x:Type igDP:HeaderPrefixArea}">
-                                    <CheckBox HorizontalAlignment="Center"
-                                          VerticalAlignment="Center"
-                                              Margin="0,5,0,-5"
-                                          IsChecked="{Binding Path=DataPresenter.DataContext.AllMembersAreChecked, Mode=TwoWay}" />
+                                    <Grid VerticalAlignment="Center">
+                                        <CheckBox
+                                            Margin="0,5,0,-5"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            IsChecked="{Binding Path=DataPresenter.DataContext.AllMembersAreChecked, Mode=TwoWay}"
+                                            Visibility="{Binding Path=DataPresenter.DataContext.IsRead, Converter={StaticResource VisibilityInvertConverter}, FallbackValue=Collapsed}" />
+                                    </Grid>
                                 </ControlTemplate>
                             </Setter.Value>
                         </Setter>
@@ -166,7 +172,10 @@
                         AllowEdit="False"
                         AllowHiding="Always"
                         AllowRecordFiltering="true"
-                        FilterLabelIconDropDownType="MultiSelectExcelStyle" />
+                        AllowSummaries="True"
+                        AutoSizeOptions="All"
+                        FilterLabelIconDropDownType="MultiSelectExcelStyle"
+                        SummaryDisplayArea="InGroupByRecords, BottomFixed" />
                 </igDP:XamDataGrid.FieldSettings>
 
                 <igDP:XamDataGrid.FieldLayouts>
@@ -176,50 +185,70 @@
                         <igDP:FieldLayout.SummaryDefinitions>
                             <igDP:SummaryDefinition
                                 Calculator="{x:Static igDP:SummaryCalculator.Count}"
-                                PositionFieldName="ut"
+                                PositionFieldName="site_technique"
                                 SourceFieldName="ut"
                                 StringFormat="Total={0}" />
+                            <igDP:SummaryDefinition
+                                Calculator="{x:Static igDP:SummaryCalculator.Sum}"
+                                PositionFieldName="surface"
+                                SourceFieldName="surface"
+                                StringFormat="Total={0:0.####} ha" />
                         </igDP:FieldLayout.SummaryDefinitions>
 
                         <igDP:FieldLayout.Settings>
                             <igDP:FieldLayoutSettings
                                 AutoGenerateFields="False"
-                                HeaderPlacement="OnTopOnly"
+                                HeaderPlacement="OnRecordBreak"
                                 HeaderPrefixAreaDisplayMode="FieldChooserButton" />
                         </igDP:FieldLayout.Settings>
 
                         <igDP:FieldLayout.Fields>
-                            <igDP:CheckBoxField
-                                Name="inCampagne"
-                                Width="25"
-                                AllowEdit="true"
-                                IsReadOnly="{Binding Path=DataContext.IsRead, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=false, Converter={StaticResource DebugConverter}}"
-                                Label="">
-                                <igDP:Field.Settings>
-                                    <igDP:FieldSettings DataItemUpdateTrigger="OnCellValueChange" DataValueChangedNotificationsActive="true" />
-                                </igDP:Field.Settings>
-                            </igDP:CheckBoxField>
+
+                            <igDP:TemplateField Name="inCampagne" Label="">
+                                <igDP:TemplateField.DisplayTemplate>
+                                    <DataTemplate>
+                                        <Grid>
+                                            <Ellipse
+                                                Width="20"
+                                                Height="20"
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"
+                                                Fill="{Binding Path=(igEditors:TemplateEditor.Editor).Value, RelativeSource={RelativeSource Self}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=#f58e87, Converter={StaticResource BoolStringColorConverter}}" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </igDP:TemplateField.DisplayTemplate>
+                            </igDP:TemplateField>
                             <igDP:NumericField
                                 Name="id_parcelle"
                                 Width="50"
                                 Label="Id UT"
                                 Visibility="Collapsed" />
-                            <igDP:TextField Name="ut" Label="UT" />
+                            <igDP:TextField Name="site_technique" Label="Site Technique" />
+                            <igDP:TextField Name="site_vendange" Label="Site Vendange" />
+                            <igDP:TextField Name="propriete" Label="Propriété" />
+                            <igDP:TextField Name="ut" Label="UT">
+                                <igDP:Field.Settings>
+                                    <igDP:FieldSettings>
+                                        <igDP:FieldSettings.CellValuePresenterStyle>
+                                            <Style TargetType="{x:Type igDP:CellValuePresenter}">
+                                                <Setter Property="FontWeight" Value="Bold" />
+                                            </Style>
+                                        </igDP:FieldSettings.CellValuePresenterStyle>
+                                    </igDP:FieldSettings>
+                                </igDP:Field.Settings>
+                            </igDP:TextField>
                             <igDP:TextField
                                 Name="nameParcelle"
                                 Label="Désignation"
                                 Visibility="Collapsed" />
-                            <igDP:TextField Name="nameParcelle2" Label="Désignation 2" />
-                            <igDP:TextField Name="propriete" Label="Propriété" />
+                            <igDP:TextField Name="nameParcelle2" Label="Lieu-dit" />
                             <igDP:TextField Name="appellation" Label="Appellation" />
                             <igDP:TextField Name="cepage" Label="Cépage" />
-                            <igDP:TextField Name="site_technique" Label="Site Technique" />
-                            <igDP:TextField Name="site_vendange" Label="Site Vendange" />
+                            <igDP:TextField Name="qualite" Label="Qualite" />
                             <igDP:NumericField
                                 Name="surface"
-                                Format="##0.000 ha"
+                                Format="##0.0000 ha"
                                 Label="Surface" />
-                            <igDP:TextField Name="qualite" Label="Qualite" />
                             <igDP:NumericField
                                 Name="cptGlomerule"
                                 Label="Glomérule"

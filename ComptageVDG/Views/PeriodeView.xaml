@@ -314,7 +314,7 @@
                     </igEditors:XamDateTimeEditor.Resources>
                 </igEditors:XamDateTimeEditor>
 
-                <StackPanel
+                <!--<StackPanel
                     Grid.Row="1"
                     Grid.Column="4"
                     Orientation="Horizontal">
@@ -335,15 +335,15 @@
                                 TextAlignment="Center" />
                         </StackPanel>
                     </Button>
-                    <!--<Button  x:Name="BtGlomeFermeture" Margin="3" >
+                    --><!--<Button  x:Name="BtGlomeFermeture" Margin="3" >
                         <StackPanel Orientation="Horizontal" Margin="3" >
                             <Image Source="pack://application:,,,/Views/paramètres-30.png" Width="20" VerticalAlignment="Center"  />
                             <TextBlock Text="Fermeture" TextAlignment="Center" VerticalAlignment="Center" Margin="3"/>
                         </StackPanel>
-                    </Button>-->
-                </StackPanel>
+                    </Button>--><!--
+                </StackPanel>-->
 
-                <StackPanel
+                <!--<StackPanel
                     Grid.Row="2"
                     Grid.Column="4"
                     Orientation="Horizontal">
@@ -364,14 +364,14 @@
                                 TextAlignment="Center" />
                         </StackPanel>
                     </Button>
-                    <!--<Button  x:Name="BtPerfo1Fermeture" Margin="3" >
+                    --><!--<Button  x:Name="BtPerfo1Fermeture" Margin="3" >
                         <StackPanel Orientation="Horizontal" Margin="3" >
                             <Image Source="pack://application:,,,/Views/paramètres-30.png" Width="20" VerticalAlignment="Center"  />
                             <TextBlock Text="Fermeture" TextAlignment="Center" VerticalAlignment="Center" Margin="3"/>
                         </StackPanel>
-                    </Button>-->
-                </StackPanel>
-                <StackPanel
+                    </Button>--><!--
+                </StackPanel>-->
+                <!--<StackPanel
                     Grid.Row="3"
                     Grid.Column="4"
                     Orientation="Horizontal">
@@ -392,13 +392,13 @@
                                 TextAlignment="Center" />
                         </StackPanel>
                     </Button>
-                    <!--<Button  x:Name="BtPerfo2Fermeture" Margin="3" >
+                    --><!--<Button  x:Name="BtPerfo2Fermeture" Margin="3" >
                         <StackPanel Orientation="Horizontal" Margin="3" >
                             <Image Source="pack://application:,,,/Views/paramètres-30.png" Width="20" VerticalAlignment="Center"  />
                             <TextBlock Text="Fermeture" TextAlignment="Center" VerticalAlignment="Center" Margin="3"/>
                         </StackPanel>
-                    </Button>-->
-                </StackPanel>
+                    </Button>--><!--
+                </StackPanel>-->
             </Grid>
 
         </Grid>

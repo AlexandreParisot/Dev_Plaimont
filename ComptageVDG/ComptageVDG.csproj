@@ -18,6 +18,7 @@
     <None Remove="Views\icons8-settings-64.png" />
     <None Remove="Views\icons8-undo-64.png" />
     <None Remove="Views\Images\icons8-add-to-cloud-64.png" />
+    <None Remove="Views\Images\icons8-home-64.png" />
     <None Remove="Views\loading-icon-product.png" />
     <None Remove="Views\Plaimont.png" />
   </ItemGroup>
@@ -45,6 +46,7 @@
     <Resource Include="Views\Images\icons8-cloud-connection-64.png" />
     <Resource Include="Views\Images\icons8-cloud-sync-64.png" />
     <Resource Include="Views\Images\icons8-grapes-64.png" />
+    <Resource Include="Views\Images\icons8-home-64.png" />
     <Resource Include="Views\Images\icons8-piccollage-64.png" />
     <Resource Include="Views\Images\icons8-save-64.png" />
     <Resource Include="Views\Images\icons8-settings-64.png" />
