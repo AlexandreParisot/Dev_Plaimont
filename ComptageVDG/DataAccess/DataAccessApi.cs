@@ -98,6 +98,12 @@ namespace ComptageVDG.DataAccess
             return await Task.Run(() => ExecuteQuery<T>(query, paramsArray));
         }
 
+        public async Task<T> AsyncExecuteQueryofT<T>(string query, object[]? paramsArray = null)
+        {
+            return await Task.Run(() => ExecuteQueryofT<T>(query, paramsArray));
+        }
+
+
         public bool Close()
         {
             return true;
@@ -274,8 +280,6 @@ namespace ComptageVDG.DataAccess
                         var res = JsonSerialize.Deserialize<IEnumerable<T>>(str);
                         return res;
                     } 
-                        
-              
                 }
                 else
                 {

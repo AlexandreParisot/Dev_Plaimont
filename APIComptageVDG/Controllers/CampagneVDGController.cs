@@ -125,7 +125,10 @@ namespace APIComptageVDG.Controllers
         {
 
             if (!System.IO.File.Exists(Path))
-                return BadRequest("le fichier n'existe pas.");
+            {
+                Gestion.Erreur($"le fichier {Path} n'existe pas.");
+                return BadRequest(false);
+            }
 
             var hostSftp = _config["Instagrappe:ServeurSFTP"];
             var userSftp = _config["Instagrappe:IdSftp"];
@@ -135,8 +138,9 @@ namespace APIComptageVDG.Controllers
 
            if( await sFtpHelper.AsyncUploadFile(Path))
             {
-                if (_instaService.SuccessConfig) {
-                    
+                if (_instaService.SuccessConfig)
+                {
+
                     var result = await _instaService.SetImportInstagrappe(Path);
                     try
                     {
@@ -147,25 +151,29 @@ namespace APIComptageVDG.Controllers
                         {
                             System.IO.File.Copy(Path, System.IO.Path.Combine(Gestion.Current_Dir, "API", "Reussi", System.IO.Path.GetFileName(Path)), true);
                             await _service.AsyncSetLastSynchro();
-                        }                                                  
+                        }
                         else
                             System.IO.File.Copy(Path, System.IO.Path.Combine(Gestion.Current_Dir, "API", "Echec", System.IO.Path.GetFileName(Path)), true);
-                       
+
                         System.IO.File.Delete(Path);
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         Gestion.Erreur($"Erreur Archivage fichier : {System.IO.Path.GetFileName(Path)} - {ex.Message}");
                     }
-                    
+                    if (result.success)
+                        Gestion.Obligatoire(result.result.ToString());
+                    else
+                        Gestion.Erreur(result.result.ToString());
 
-                    return result.success ? Ok(result.result) : BadRequest(result.result);  
+                    return result.success ? Ok(true) : BadRequest(false);
                 }
                 else
-                    return BadRequest("Il manque des informaitons pour le parametrage de l'appel de l'api instagrappe.");
+                    Gestion.Erreur("Il manque des informaitons pour le parametrage de l'appel de l'api instagrappe.");
+                    return BadRequest(false);
             }
-
-            return BadRequest("Impossible d'envoyer le fichier sur le serveur Sftp.");
+            Gestion.Erreur("Impossible d'envoyer le fichier sur le serveur Sftp.");
+            return BadRequest(false);
 
         }
 
@@ -225,20 +233,20 @@ namespace APIComptageVDG.Controllers
         /// constitu le fichier json.
         /// </summary>
         /// <returns>retourne le nom du fichier json a lancer a l'import. sinon retourne rien.</returns>
-        [HttpGet("Instagrappe/GenerateEngagementVDG")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<string>> GenerateEngagementVDGInstagrappe()
-        {
-            string fileJson = string.Empty;
+        //[HttpGet("Instagrappe/GenerateEngagementVDG")]
+        //[ProducesResponseType(StatusCodes.Status200OK)]
+        //[ProducesResponseType(StatusCodes.Status400BadRequest)]
+        //public async Task<ActionResult<string>> GenerateEngagementVDGInstagrappe()
+        //{
+        //    string fileJson = string.Empty;
 
-            var listParcelle = await _service.AsyncGetParcellesInCampagne(int.Parse(DateTime.Today.ToString("yyyy")));
+        //    var listParcelle = await _service.AsyncGetParcellesInCampagne(int.Parse(DateTime.Today.ToString("yyyy")));
           
-            var result = await _instaService.GenerateEngagementVDGInstagrappe(listParcelle, int.Parse(DateTime.Today.ToString("yyyy")));
-            return result.success ? Ok(result?.result) : BadRequest(result?.result);
+        //    var result = await _instaService.GenerateEngagementVDGInstagrappe(listParcelle, int.Parse(DateTime.Today.ToString("yyyy")));
+        //    return result.success ? Ok(result?.result) : BadRequest(result?.result);
 
 
-        }
+        //}
 
 
 
@@ -295,6 +303,72 @@ namespace APIComptageVDG.Controllers
             }else
                 return BadRequest("Il manque des informaitons pour le parametrage de l'appel de l'api instagrappe.");
         }
+
+
+
+        /// <summary>
+        ///  permet d'envoyer la synchro des parcelle dans instagrappe pour l'ouverture au comptage.
+        /// </summary>
+        /// <param name="AnneeCampagne"></param>
+        /// <returns></returns>
+        [HttpGet("Instagrappe/SynchroDeclaration")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<bool>> GetSynchroDeclaration(int annee)
+        {
+
+            if (_instaService.SuccessConfig)
+            {
+                var result = await GenerateEngagementCadreVDGInstagrappe();
+                var strjsonFile = ((ObjectResult)result.Result).Value;
+                if (string.IsNullOrEmpty(strjsonFile.ToString()))
+                {
+                    Gestion.Erreur("Impossible de generer le fichier Engagement Cadre Vers de grappe.");
+                    return Ok(false);
+                }
+
+                Gestion.Info($"Creation du fichier {strjsonFile.ToString()} éffectué.");
+                var result2 =  await SetImportInstagrappe(strjsonFile.ToString());
+                var boolResult = ((ObjectResult)result2.Result).Value;
+                Gestion.Info($"Envoi instagrappe : {result2.ToString()}");
+                return Ok(boolResult);
+            }
+            else
+                Gestion.Erreur("Il manque des informaitons pour le parametrage de l'appel de l'api instagrappe.");
+            return BadRequest(false); ;
+        }
+
+        /// <summary>
+        ///  permet d'envoyer la synchro des parcelle dans instagrappe pour l'ouverture au comptage.
+        /// </summary>
+        /// <param name="AnneeCampagne"></param>
+        /// <returns></returns>
+        [HttpGet("Instagrappe/SynchroCompteur")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<bool>> GetSynchroCompteur(int annee)
+        {
+
+            if (_instaService.SuccessConfig)
+            {
+                var result = await GetEngagementVersDeGrappe(annee.ToString());
+                var Engagement = JsonSerialize.Deserialize<Engagements>(result.Value);
+                if (Engagement != null)
+                {
+                    //TODO Procedure creation des observations.
+                    return Ok(true);
+                }
+                else
+                {
+                    Gestion.Erreur(result.Value);
+                    return Ok(false);
+                }               
+            }
+            else
+                Gestion.Erreur("Il manque des informaitons pour le parametrage de l'appel de l'api instagrappe.");
+            return BadRequest(false); ;
+        }
+
 
         #endregion
 

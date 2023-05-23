@@ -43,7 +43,7 @@ namespace APIComptageVDG.HostServices
                     options.AddPolicy("CorsPolicy", builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader().AllowCredentials().Build());
                 });
 
-                services.AddSingleton<LavilogService>();
+                //services.AddSingleton<LavilogService>();
 
                 services.AddControllers();
               
@@ -88,8 +88,8 @@ namespace APIComptageVDG.HostServices
 
                 Gestion.Obligatoire($"Url API Web : {hostUrl}");
 
-                if (app.ApplicationServices.GetService(typeof(LavilogService)) is LavilogService serviceLavilog)
-                    serviceLavilog.SetConnexion(Configuration.GetConnectionString("SqlConnexion"));
+                //if (app.ApplicationServices.GetService(typeof(LavilogService)) is LavilogService serviceLavilog)
+                //    serviceLavilog.SetConnexion(Configuration.GetConnectionString("SqlConnexion"));
 
                 // Configure the HTTP request pipeline.
                 app.UseStaticFiles(new StaticFileOptions

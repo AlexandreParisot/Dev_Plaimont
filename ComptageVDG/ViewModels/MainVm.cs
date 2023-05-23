@@ -64,16 +64,29 @@ namespace ComptageVDG.ViewModels
                 return;
             }
                
-            if(currentView == "Periode")
-                MessagingService.Sender?.Notification("SYNCHRO",String.Empty);
-            else
+            //if(currentView == "Periode")
+            //    MessagingService.Sender?.Notification("SYNCHRO",String.Empty);
+            //else
+            //{
+                ShowLoading($"Synchronisation Instagrappe pour la campagne {DateCampagne}.{Environment.NewLine}Ouverture des parcelles ...");
+            //il faut la liste de parcelle autorisé + la periode
+            //await ServiceCampagne.OpenParcelle(null).with;
+            var result =  await ServiceCampagne.asyncSynchroInstagrappeDeclaration(int.Parse(DateCampagne));
+            if (result)
             {
-                ShowLoading($"Synchronisation Instagrappe pour la campagne {DateCampagne}.");
-                //il faut la liste de parcelle autorisé + la periode
-                //await ServiceCampagne.OpenParcelle(null).with;
-                await Task.Delay(TimeSpan.FromSeconds(3));
-                ClearLoading();
+                ShowLoading($"Synchronisation Instagrappe pour la campagne {DateCampagne}.{Environment.NewLine}Récupération des compteurs ...");
+                result = await ServiceCampagne.asyncSynchroInstagrappeCompteur(int.Parse(DateCampagne));
             }
+            else
+                ErrorNotif($"La synchronisation des parcelles dans instagrappe est en erreur.");
+
+            if (!result)
+                ErrorNotif($"La synchronisation des compteurs dans instagrappe est en erreur.");
+            else
+                SuccessNotif($"La synchronisation instagrappe est effectuée avec succès. ");
+
+            ClearLoading();
+            //}
         }
 
         public async Task<bool> LoadDicoCampagne(bool firstLoad = false)

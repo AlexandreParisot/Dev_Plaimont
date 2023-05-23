@@ -24,24 +24,11 @@ namespace ComptageVDG.IServices
         bool SetPeriodeCampagne(IEnumerable<PeriodeModel> periodeCampagne, string DateCampagne);
         
         Task<bool> asyncSetPeriodeCampagne(IEnumerable<PeriodeModel> periodeCampagne, string DateCampagne);
-        
-        Task<bool> asyncOpenParcellesCampagne(IEnumerable<ParcelleModel> parcelle, int Year);
-        Task<bool> asyncOpenParcellesPeriode(IEnumerable<ParcelleModel> parcelle, PeriodeModel periodeModel);       
-        Task<bool> asyncOpenParcelleCampagne(ParcelleModel parcelle,int Year);
-        Task<bool> asyncOpenParcellePeriode(ParcelleModel parcelle, PeriodeModel periodeModel);
-        bool OpenParcellesCampagne(IEnumerable<ParcelleModel> parcelle, int Year);
-        bool OpenParcellesPeriode(IEnumerable<ParcelleModel> parcelle, PeriodeModel periodeModel);
-        bool OpenParcelleCampagne(ParcelleModel parcelle, int Year);
-        bool OpenParcellePeriode(ParcelleModel parcelle, PeriodeModel periodeModel);
-        
-        Task<bool> asyncCloseParcellesCampagne(IEnumerable<ParcelleModel> parcelle, int Year);
-        Task<bool> asyncCloseParcellesPeriode(IEnumerable<ParcelleModel> parcelle, PeriodeModel periodeModel);
-        Task<bool> asyncCloseParcelleCampagne(ParcelleModel parcelle, int Year);
-        Task<bool> asyncCloseParcellePeriode(ParcelleModel parcelle, PeriodeModel periodeModel);
-        bool CloseParcellesCampagne(IEnumerable<ParcelleModel> parcelle, int Year);
-        bool CloseParcellesPeriode(IEnumerable<ParcelleModel> parcelle, PeriodeModel periodeModel);
-        bool CloseParcelleCampagne(ParcelleModel parcelle, int Year);
-        bool CloseParcellePeriode(ParcelleModel parcelle, PeriodeModel periodeModel);
+
+        Task<bool> asyncSynchroInstagrappeDeclaration(int Year);        
+        Task<bool> asyncSynchroInstagrappeCompteur(int Year);
+
+        Task<bool> asyncOpenParcelleCampagne(ParcelleModel parcelle,int Year);      
         Task<string> getTimeSynchroCampagne();
     }
 }

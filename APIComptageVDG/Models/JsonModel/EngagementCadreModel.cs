@@ -22,7 +22,7 @@ namespace APIComptageVDG.Models.JsonModel
         public string? vers_grappe_authorize { get; set; }
         public string? perforation_1_readonly { get; set; }
         public string? perforation_2_readonly { get; set; }
-        public string? glomerule_readonly { get; set; }
+        public string? glomerules_readonly { get; set; }
     }
 
     public class Engagement_cadre

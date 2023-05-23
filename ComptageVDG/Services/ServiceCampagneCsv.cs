@@ -110,96 +110,10 @@ namespace ComptageVDG.Services
         }
 
         #region Gestion API Instagrappe
+
         #endregion
 
-        public async Task<bool> asyncOpenParcellesCampagne(IEnumerable<ParcelleModel> parcelle, int Year)
-        {
-            return await Task.Run(() => OpenParcellesCampagne(parcelle, Year));
-        }
-
-        public async Task<bool> asyncOpenParcellesPeriode(IEnumerable<ParcelleModel> parcelle, PeriodeModel periodeModel)
-        {
-            return await Task.Run(() => OpenParcellesPeriode(parcelle, periodeModel));
-        }
-
-        public async Task<bool> asyncOpenParcelleCampagne(ParcelleModel parcelle, int Year)
-        {
-            return await Task.Run(() => OpenParcelleCampagne(parcelle, Year));
-        }
-
-        public async Task<bool> asyncOpenParcellePeriode(ParcelleModel parcelle, PeriodeModel periodeModel)
-        {
-            return await Task.Run(() => OpenParcellePeriode(parcelle, periodeModel));
-        }
-
-        public bool OpenParcellesCampagne(IEnumerable<ParcelleModel> parcelle, int Year)
-        {
-            //throw new NotImplementedException();
-            return false;
-        }
-
-        public bool OpenParcellesPeriode(IEnumerable<ParcelleModel> parcelle, PeriodeModel periodeModel)
-        {
-            //throw new NotImplementedException();
-            return false;
-        }
-
-        public bool OpenParcelleCampagne(ParcelleModel parcelle, int Year)
-        {
-            //throw new NotImplementedException();
-            return false;
-        }
-
-        public bool OpenParcellePeriode(ParcelleModel parcelle, PeriodeModel periodeModel)
-        {
-            //throw new NotImplementedException();
-            return false;
-        }
-
-        public async Task<bool> asyncCloseParcellesCampagne(IEnumerable<ParcelleModel> parcelle, int Year)
-        {
-            return await Task.Run(() => CloseParcellesCampagne(parcelle, Year));
-        }
-
-        public async Task<bool> asyncCloseParcellesPeriode(IEnumerable<ParcelleModel> parcelle, PeriodeModel periodeModel)
-        {
-            return await Task.Run(() => CloseParcellesPeriode(parcelle, periodeModel));
-        }
-
-        public async Task<bool> asyncCloseParcelleCampagne(ParcelleModel parcelle, int Year)
-        {
-            return await Task.Run(() => CloseParcelleCampagne(parcelle, Year));
-        }
-
-        public async Task<bool> asyncCloseParcellePeriode(ParcelleModel parcelle, PeriodeModel periodeModel)
-        {
-            return await Task.Run(() => CloseParcellePeriode(parcelle, periodeModel));
-        }
-
-        public bool CloseParcellesCampagne(IEnumerable<ParcelleModel> parcelle, int Year)
-        {
-            //throw new NotImplementedException();
-            return false;
-        }
-
-        public bool CloseParcellesPeriode(IEnumerable<ParcelleModel> parcelle, PeriodeModel periodeModel)
-        {
-            //throw new NotImplementedException();
-            return false;
-        }
-
-        public bool CloseParcelleCampagne(ParcelleModel parcelle, int Year)
-        {
-            //throw new NotImplementedException();
-            return false;
-        }
-
-        public bool CloseParcellePeriode(ParcelleModel parcelle, PeriodeModel periodeModel)
-        {
-            //throw new NotImplementedException();
-            return false;
-        }
-
+       
         public async Task<string> getTimeSynchroCampagne()
         {
             return await Task.Run(() => { return DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss"); });
@@ -212,6 +126,21 @@ namespace ComptageVDG.Services
             if (retour != null)
                 return new ObservableCollection<ParcelleModel>(retour!);
             else return new ObservableCollection<ParcelleModel>();
+        }
+
+        public Task<bool> asyncSynchroInstagrappeDeclaration(int Year)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> asyncSynchroInstagrappeCompteur(int Year)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> asyncOpenParcelleCampagne(ParcelleModel parcelle, int Year)
+        {
+            throw new NotImplementedException();
         }
     }
 }

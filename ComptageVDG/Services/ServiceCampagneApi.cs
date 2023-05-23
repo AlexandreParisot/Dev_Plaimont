@@ -24,26 +24,7 @@ namespace ComptageVDG.Services
 
 
         #region Implementation Interface
-        public Task<bool> asyncCloseParcelleCampagne(ParcelleModel parcelle, int Year)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<bool> asyncCloseParcellePeriode(ParcelleModel parcelle, PeriodeModel periodeModel)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<bool> asyncCloseParcellesCampagne(IEnumerable<ParcelleModel> parcelle, int Year)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<bool> asyncCloseParcellesPeriode(IEnumerable<ParcelleModel> parcelle, PeriodeModel periodeModel)
-        {
-            throw new NotImplementedException();
-        }
-
+       
         public async Task<Dictionary<string, string>> asyncDicoCampagne()
         {
             return await Task.Run(() => DicoCampagne());
@@ -77,45 +58,13 @@ namespace ComptageVDG.Services
             return false;
         }  
 
-        public Task<bool> asyncOpenParcellePeriode(ParcelleModel parcelle, PeriodeModel periodeModel)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<bool> asyncOpenParcellesCampagne(IEnumerable<ParcelleModel> parcelle, int Year)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<bool> asyncOpenParcellesPeriode(IEnumerable<ParcelleModel> parcelle, PeriodeModel periodeModel)
-        {
-            throw new NotImplementedException();
-        }
-
         public async Task<bool> asyncSetPeriodeCampagne(IEnumerable<PeriodeModel> periodeCampagne, string DateCampagne)
         {
             return await Task.Run(() => SetPeriodeCampagne(periodeCampagne, DateCampagne));
         }
 
-        public bool CloseParcelleCampagne(ParcelleModel parcelle, int Year)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool CloseParcellePeriode(ParcelleModel parcelle, PeriodeModel periodeModel)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool CloseParcellesCampagne(IEnumerable<ParcelleModel> parcelle, int Year)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool CloseParcellesPeriode(IEnumerable<ParcelleModel> parcelle, PeriodeModel periodeModel)
-        {
-            throw new NotImplementedException();
-        }
+      
+        
 
         public Dictionary<string, string> DicoCampagne()
         {
@@ -153,24 +102,14 @@ namespace ComptageVDG.Services
             return  ListPeriode == null? null : new ObservableCollection<ParcelleModel>(ListPeriode) ;
         }
 
-        public bool OpenParcelleCampagne(ParcelleModel parcelle, int Year)
+        public async Task<bool> asyncSynchroInstagrappeCompteur(int Year)
         {
-            throw new NotImplementedException();
+            return await ((DataAccessApi)connexionService.Instance).AsyncExecuteQueryofT<bool>($"CampagneVDG/Instagrappe/SynchroCompteur", new object[] { $"year={Year.ToString()}" });
         }
 
-        public bool OpenParcellePeriode(ParcelleModel parcelle, PeriodeModel periodeModel)
+        public async Task<bool> asyncSynchroInstagrappeDeclaration(int Year)
         {
-            throw new NotImplementedException();
-        }
-
-        public bool OpenParcellesCampagne(IEnumerable<ParcelleModel> parcelle, int Year)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool OpenParcellesPeriode(IEnumerable<ParcelleModel> parcelle, PeriodeModel periodeModel)
-        {
-            throw new NotImplementedException();
+            return await ((DataAccessApi)connexionService.Instance).AsyncExecuteQueryofT<bool>($"CampagneVDG/Instagrappe/SynchroDeclaration", new object[] { $"year={Year.ToString()}" });
         }
 
         public bool SetPeriodeCampagne(IEnumerable<PeriodeModel> periodeCampagne, string DateCampagne)

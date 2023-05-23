@@ -426,6 +426,7 @@ namespace APIComptageVDG.Services
                     //complement.glomerule_readonly = glomeruleRead?"oui":null;
                     complement.perforation_1_readonly = perforationRead ? "oui" : null;
                     complement.perforation_2_readonly = perforation2Read ? "oui" : null;
+                    complement.glomerules_readonly = glomeruleRead ? "oui" : null;
                     engagements.engagement_cadre.Add(engagements_cadre);
                 }
                 catch(Exception ex)
