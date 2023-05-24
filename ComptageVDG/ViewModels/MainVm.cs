@@ -83,7 +83,13 @@ namespace ComptageVDG.ViewModels
             if (!result)
                 ErrorNotif($"La synchronisation des compteurs dans instagrappe est en erreur.");
             else
+            {
                 SuccessNotif($"La synchronisation instagrappe est effectuée avec succès. ");
+                if(currentView == "Campagne")
+                    MessageBrokerImpl.Instance.Publish(this, MessageBrokerImpl.Notification("REFRESH", DateCampagne));
+                else ParcelleModelsinCampagne = null;
+            }
+                
 
             ClearLoading();
             //}

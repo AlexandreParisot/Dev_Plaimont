@@ -62,6 +62,13 @@ namespace ComptageVDG.ViewModels
                     ClearLoading();
                 }
             }
+            if(obj.What.Sender == "REFRESH")
+            {
+                if(obj.What.Data is string dateCp)
+                {
+                    RefreshCommand.Execute(this);
+                }
+            }
 
         }
 

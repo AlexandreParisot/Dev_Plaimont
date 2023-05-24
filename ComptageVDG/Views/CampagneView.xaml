@@ -7,6 +7,7 @@
     xmlns:ig="http://schemas.infragistics.com/xaml"
     xmlns:igDP="http://infragistics.com/DataPresenter"
     xmlns:igEditors="http://infragistics.com/Editors"
+    xmlns:igThemes="http://infragistics.com/Themes"
     xmlns:local="clr-namespace:ComptageVDG.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:viewmodel="clr-namespace:ComptageVDG.ViewModels"
@@ -25,9 +26,33 @@
             </ResourceDictionary.MergedDictionaries>
             <!--<viewmodel:CampagneVM x:Key="viewModel" />-->
             <converter:DebugConverter x:Key="DebugConverter" />
+            <local:MyConverter x:Key="MyFieldNameCon" />
 
             <Style x:Key="ut" TargetType="{x:Type igDP:CellValuePresenter}">
                 <Setter Property="FontWeight" Value="Bold" />
+            </Style>
+            <Style BasedOn="{x:Static igThemes:DataPresenterGeneric.SummaryRecordPresenter}" TargetType="{x:Type igDP:SummaryRecordPresenter}">
+                <Setter Property="Background">
+                    <Setter.Value>
+                        <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                            <GradientStop Offset="0" Color="#FF64738A" />
+                            <GradientStop Offset="0.5" Color="#FF475262" />
+                            <GradientStop Offset="0.5" Color="#FF2D343E" />
+                            <GradientStop Offset="1" Color="#FF627187" />
+                        </LinearGradientBrush>
+                    </Setter.Value>
+                </Setter>
+                <Setter Property="Foreground" Value="#ffffffff" />
+            </Style>
+
+            <Style BasedOn="{x:Static igThemes:DataPresenterGeneric.SummaryResultPresenter}" TargetType="{x:Type igDP:SummaryResultPresenter}">
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding Converter={StaticResource MyFieldNameCon}}" Value="cptGlomerule">
+                        <Setter Property="FontWeight" Value="Bold" />
+                        <Setter Property="HorizontalAlignment" Value="Right" />
+                    </DataTrigger>
+                </Style.Triggers>
+                <Setter Property="FontSize" Value="30" />
             </Style>
         </ResourceDictionary>
     </UserControl.Resources>
@@ -124,16 +149,19 @@
                                     SourceFieldName="surface"
                                     StringFormat="Total={0:0.####} ha" />
                                 <igDP:SummaryDefinition
+                                    Key="cptGlomerule"
                                     Calculator="{x:Static igDP:SummaryCalculator.Sum}"
                                     PositionFieldName="cptGlomerule"
                                     SourceFieldName="cptGlomerule"
                                     StringFormat="{}{0}" />
                                 <igDP:SummaryDefinition
+                                    Key="cptPerforation1"
                                     Calculator="{x:Static igDP:SummaryCalculator.Sum}"
                                     PositionFieldName="cptPerforation1"
                                     SourceFieldName="cptPerforation1"
                                     StringFormat="{}{0}" />
                                 <igDP:SummaryDefinition
+                                    Key="cptPerforation2"
                                     Calculator="{x:Static igDP:SummaryCalculator.Sum}"
                                     PositionFieldName="cptPerforation2"
                                     SourceFieldName="cptPerforation2"
@@ -181,7 +209,10 @@
                                     Name="surface"
                                     Format="##0.0000 ha"
                                     Label="Surface" />
-                                <igDP:NumericField Name="cptGlomerule" Label="Glomérule">
+                                <igDP:NumericField
+                                    Name="cptGlomerule"
+                                    Format="##0"
+                                    Label="Glomérule">
                                     <igDP:Field.Settings>
                                         <igDP:FieldSettings>
                                             <igDP:FieldSettings.CellValuePresenterStyle>
@@ -192,7 +223,10 @@
                                         </igDP:FieldSettings>
                                     </igDP:Field.Settings>
                                 </igDP:NumericField>
-                                <igDP:NumericField Name="cptPerforation1" Label="Perforation">
+                                <igDP:NumericField
+                                    Name="cptPerforation1"
+                                    Format="##0"
+                                    Label="Perforation">
                                     <igDP:Field.Settings>
                                         <igDP:FieldSettings>
                                             <igDP:FieldSettings.CellValuePresenterStyle>
@@ -203,7 +237,10 @@
                                         </igDP:FieldSettings>
                                     </igDP:Field.Settings>
                                 </igDP:NumericField>
-                                <igDP:NumericField Name="cptPerforation2" Label="Perforation 2">
+                                <igDP:NumericField
+                                    Name="cptPerforation2"
+                                    Format="##0"
+                                    Label="Perforation 2">
                                     <igDP:Field.Settings>
                                         <igDP:FieldSettings>
                                             <igDP:FieldSettings.CellValuePresenterStyle>

@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
     <ApplicationIcon>Views\Images\icons8-piccollage-64.ico</ApplicationIcon>
+	<IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Views\icons8-clock-64.png" />
@@ -23,7 +24,7 @@
     <None Remove="Views\Plaimont.png" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Views\Images\icons8-piccollage-64.ico" />
+    <Resource Include="Views\Images\icons8-piccollage-64.ico" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="CsvHelper" Version="30.0.1" />
@@ -36,7 +37,7 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Views\Images\paramètres-30.png" />
+    <Resource Include="Views\Images\paramètres-30.png" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Views\icons8-piccollage-64.ico" />

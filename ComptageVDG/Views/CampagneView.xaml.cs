@@ -1,6 +1,8 @@
 ﻿using ComptageVDG.ViewModels;
+using Infragistics.Windows.DataPresenter;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -38,6 +40,19 @@ namespace ComptageVDG.Views
                 Campage.CloseVM();
                 DataContext = null;
             }
+        }
+    }
+
+    public class MyConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        {
+            return (value as SummaryResultEntry).SummaryResult.SourceField.Label.ToString();
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        {
+            return value;
         }
     }
 }
