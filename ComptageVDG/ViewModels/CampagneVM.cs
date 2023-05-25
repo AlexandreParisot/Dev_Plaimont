@@ -38,8 +38,9 @@ namespace ComptageVDG.ViewModels
             RefreshCommand = new RelayCommand(async() => {
                 ShowLoading($"Chargement de la campagne {DateCampagne}");               
                 await asyncLoadParcelles(DateCampagne).ContinueWith(
-                    (x) => { 
+                    async (x) => { 
                         ClearLoading();
+                        await ColorCompteur(DateCampagne);
                         if (ParcelleModelsinCampagne != null && ParcelleModelsinCampagne.Count > 0)
                             InfoNotif($"Nombre de parcelle au comptage : {ParcelleModelsinCampagne.Count}");
                     });
@@ -57,16 +58,16 @@ namespace ComptageVDG.ViewModels
                 {
                     ShowLoading($"Chargement de la campagne {dateCp}");
                     LoadParcelles(dateCp);
-                    asyncGetLastSynchro().GetAwaiter();
-                    ColorCompteur(dateCp).GetAwaiter();
                     ClearLoading();
                 }
             }
             if(obj.What.Sender == "REFRESH")
             {
-                if(obj.What.Data is string dateCp)
+                if(obj.What.Data is string dateCp && !string.IsNullOrEmpty(dateCp))
                 {
-                    RefreshCommand.Execute(this);
+                    
+                    LoadParcelles(dateCp);                   
+                   
                 }
             }
 
@@ -87,7 +88,7 @@ namespace ComptageVDG.ViewModels
                 return;
 
             ParcelleModelsinCampagne = await ServiceCampagne.asyncLoadYearInCampagne(dateCp);
-            await ColorCompteur(dateCp);
+            
         }
 
         private async Task asyncGetLastSynchro()
@@ -133,17 +134,23 @@ namespace ComptageVDG.ViewModels
             }
         }
 
-        private  void LoadParcelles(string dateCp)
+        private   void LoadParcelles(string dateCp)
         {            
             if (string.IsNullOrEmpty(dateCp))
                 return;
-
-          Dispatcher.CurrentDispatcher.BeginInvoke(new Action(() => {
-              ParcelleModelsinCampagne = ServiceCampagne.asyncLoadYearInCampagne(DateCampagne).GetAwaiter().GetResult();
-               asyncGetLastSynchro().GetAwaiter();
-              ColorCompteur(dateCp).GetAwaiter();
-          }));
-               return;
+           
+              Dispatcher.CurrentDispatcher.BeginInvoke(new Action(async () => {
+                  ShowLoading($"Chargement de la campagne {dateCp}");
+                   await ServiceCampagne.asyncLoadYearInCampagne(dateCp).ContinueWith(
+                    async (x) => {
+                        ClearLoading();
+                        await ColorCompteur(dateCp);
+                        if (ParcelleModelsinCampagne != null && ParcelleModelsinCampagne.Count > 0)
+                            InfoNotif($"Nombre de parcelle au comptage : {ParcelleModelsinCampagne.Count}");
+                    });
+                  await asyncGetLastSynchro();
+              }));
+           
         }
 
 

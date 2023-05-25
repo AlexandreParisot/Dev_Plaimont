@@ -71,7 +71,7 @@ namespace ComptageVDG.Services
             var dico = new Dictionary<string, string>();
             //connexionService.Instance.ExecuteQuery<KeyValuePair<int, string>>("CampagneVDG/Lavilog/GetCampagnes");
             var Listkvp = ((DataAccessApi)connexionService.Instance).ExecuteQueryofT<Dictionary<int, string>>("CampagneVDG/Lavilog/GetCampagnes"); 
-            if (Listkvp.Count() > 0)
+            if (Listkvp != null && Listkvp.Count() > 0)
             {
                 foreach (var item in Listkvp)
                 {

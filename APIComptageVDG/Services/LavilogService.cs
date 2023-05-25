@@ -15,6 +15,8 @@ using System.Reflection;
 using System.Security.Policy;
 using System.Xml.Linq;
 using MySqlX.XDevAPI.Common;
+using APIComptageVDG.Models.JsonModel;
+using Org.BouncyCastle.Utilities.Collections;
 
 namespace APIComptageVDG.Services
 {
@@ -291,9 +293,18 @@ namespace APIComptageVDG.Services
 						WHEN '{year}' THEN 'true'
 						ELSE 'false'
 					end inCampagne
-				  , null cptGlomerule
-				  , null cptPerforation1 
-				  , null cptPerforation2
+				 , (select  [Comptage] from dbo.vObservation ob
+						inner join  dbo.vActionUniteTravail utVa on utVa.ID_vAction = ob.ID_vAction and utVa.ID_vUniteTravail = ut.ID_vUniteTravail
+                        inner join dbo.vAction vA on vA.ID_vAction = ob.ID_vAction and YEAR(va.Action_Date) = {year}
+						where ob.ID_vObservationProgramme = ( select [ID_vObservationProgramme] from dbo.vObservationProgramme where Programme_Code = 'CVDG-G' )) cptGlomerule
+				  , (select  [Comptage] from [LAVILOG_TEST_M3].dbo.vObservation ob
+						inner join  dbo.vActionUniteTravail utVa on utVa.ID_vAction = ob.ID_vAction and utVa.ID_vUniteTravail = ut.ID_vUniteTravail
+                        inner join dbo.vAction vA on vA.ID_vAction = ob.ID_vAction and YEAR(va.Action_Date) = {year}
+						where ob.ID_vObservationProgramme = ( select [ID_vObservationProgramme] from dbo.vObservationProgramme where Programme_Code = 'CVDG-P1' )) cptPerforation1 
+				  , (select  [Comptage] from [LAVILOG_TEST_M3].dbo.vObservation ob
+						inner join  dbo.vActionUniteTravail utVa on utVa.ID_vAction = ob.ID_vAction and utVa.ID_vUniteTravail = ut.ID_vUniteTravail
+                        inner join dbo.vAction vA on vA.ID_vAction = ob.ID_vAction and YEAR(va.Action_Date) = {year}
+						where ob.ID_vObservationProgramme = ( select [ID_vObservationProgramme] from dbo.vObservationProgramme where Programme_Code = 'CVDG-P2' )) cptPerforation2
     from [LAVILOG_TEST_M3].dbo.vUniteTravail UT                                                                                                                                                               
                    inner join dbo.vPropriete P on P.ID_vPropriete = UT.ID_vPropriete                                                                                                        
                    inner join dbo.pTmpTravailCompoColonne TMP on TMP.ID_vUniteTravail = UT.ID_vUniteTravail                                                                                 
@@ -517,9 +528,160 @@ namespace APIComptageVDG.Services
             }
         }
 
-        public Task<IEnumerable<long>> AsyncSetCptParcellesCampagne(ParcelleModel Parcelles, int year)
+        public async Task<bool> AsyncSetCptParcellesCampagne(Engagements engagements)
         {
-            throw new NotImplementedException();
+
+            if (engagements == null || engagements!.engagements == null || engagements.engagements!.Count <= 0)
+                return true;
+
+            Engagements Engagement = engagements;
+
+            foreach(var engagement in engagements.engagements)
+            {
+                // transforme des engagements en parcellemodel
+                if(engagement.v_num_engagement_cadre.Split("_").Count() == 2 && engagement.complements !=null)
+                {
+                    var year = engagement.v_num_engagement_cadre.Split("_").ToArray()[0].ToString().Trim();
+                    var ut = engagement.v_num_engagement_cadre.Split("_").ToArray()[1].ToString().Trim();
+                    int tmp = 0;
+                    int? glomérule = null;
+                    if( int.TryParse(engagement.complements.nb_glomerules, out tmp))
+                       glomérule = tmp;
+                    int? perforation = null;
+                    if (int.TryParse(engagement.complements.nb_perforation_1, out tmp))
+                        perforation = tmp;
+                    int? perforation2 = null;
+                    if (int.TryParse(engagement.complements.nb_perforation_2, out tmp))
+                        perforation2 = tmp;
+                    var dicoCpt = new Dictionary<string, int?>();
+                    dicoCpt.Add("CVDG-G", glomérule);
+                    dicoCpt.Add("CVDG-P1", perforation);
+                    dicoCpt.Add("CVDG-P2", perforation2);
+                    foreach (var typecpt in dicoCpt)
+                    {
+                        if (!await asyncDeleteObservationCpt(ut, year, typecpt.Key))
+                            Gestion.Erreur($"impossible de supprimer l'observation  pour ut_id:{ut} - année:{year} - type compteur :{typecpt.Key} ");
+                        else
+                            if (typecpt.Value != null && !await asyncCreatObservationCpt(ut, typecpt.Key, typecpt.Value))
+                                Gestion.Erreur($"impossible de créer l'observation  pour ut_id:{ut} - année:{year} - type compteur :{typecpt.Key} / valeur : {typecpt.Value} ");
+                    }
+
+                }
+            }
+
+            return true;
+        }
+
+        private async  Task<bool> asyncCreatObservationCpt(string ut, string typeCpt, int? valueCpt)
+        {
+
+            var VActionMeta = new VActionMeta() { Meta_DateDebut= DateTime.Now, Meta_DateFin= DateTime.Now,Meta_Type=0};
+            var id_actionMeta = await  connection.InsertAsync(VActionMeta);
+            if (id_actionMeta == 0)
+            {
+                Gestion.Erreur($"Erreur Lors de la creation de VActionMeta: UT:{ut} - TypeCompteur  {typeCpt} - valeur : {valueCpt}");
+                return false;
+            }
+
+            var VAction = new VAction() { Action_Date = DateTime.Now, ID_vActionMeta = id_actionMeta, Action_Type = 0, Action_Previsionnel = 0 };
+            var id_action = await connection.InsertAsync(VAction);
+            if (id_action == 0)
+            {
+                Gestion.Erreur($"Erreur Lors de la creation de VAction: UT:{ut} - TypeCompteur  {typeCpt} - valeur : {valueCpt}");
+                return false;
+            }
+
+            var sql = $@"Insert INTO dbo.vActionUniteTravail
+                            (
+                                ID_vAction
+                                , ID_vUniteTravail
+                                , ActionUniteTravail_Pourcentage
+                                , ActionUniteTravail_NbPieds
+                                , ActionUniteTravail_Superficie
+                            )
+                    VALUES
+                            (
+                                {id_action}
+                                , {ut}
+                                , 100
+                                , 0
+                                , 0
+                            )";
+
+            var result = await connection.ExecuteAsync(sql);
+            if(result == 0)
+            {
+                Gestion.Erreur($"Erreur Lors de la creation de vActionUniteTravail : UT:{ut} - TypeCompteur  {typeCpt} - valeur : {valueCpt} / req : {sql}");
+                return false;
+            }
+
+
+
+            sql = $@"Insert INTO[LAVILOG_TEST_M3].dbo.vObservation
+                                (
+                                    ID_vAction
+                                    , ID_vObservationProgramme
+                                    , [Comptage]
+                                )
+                        VALUES
+                                (
+                                   {id_action}
+                                    , (select [ID_vObservationProgramme] from dbo.vObservationProgramme where Programme_Code = '{typeCpt}')
+                                    , {valueCpt}
+                        )";
+            result = await connection.ExecuteAsync(sql);
+            if (result == 0)
+            {
+                Gestion.Erreur($"Erreur Lors de la creation de vObservation : UT:{ut} - TypeCompteur  {typeCpt} - valeur : {valueCpt} / req : {sql}");
+                return false;
+            }
+
+            return true;
+        }
+
+        private async Task<bool> asyncDeleteObservationCpt(string ut, string year, string typeCpt)
+        {
+            
+            //trouve id_action
+            var req = $@"select vAm.ID_vActionMeta, vA.ID_vAction from dbo.vObservation ob
+						inner join dbo.vActionUniteTravail utVa on utVa.ID_vAction = ob.ID_vAction and utVa.ID_vUniteTravail = {ut}
+						inner join dbo.vAction vA on vA.ID_vAction = ob.ID_vAction and YEAR(va.Action_Date) = {year}
+						inner join dbo.vActionMeta vAm on vam.ID_vActionMeta = va.ID_vActionMeta
+						where ob.ID_vObservationProgramme = ( select [ID_vObservationProgramme] from dbo.vObservationProgramme where Programme_Code = '{typeCpt}' )";
+            try
+            {
+                var result = await connection.QueryAsync(req);
+
+                if (result.Count() == 0)
+                    return true;
+
+                foreach (var vactionMeta in result)
+                {
+                    req = $"DELETE FROM vActionUniteTravail WHERE ID_vAction = {vactionMeta.ID_vAction}";
+                    if (await connection.ExecuteAsync(req) != 1)
+                        return false;
+                    req = $"DELETE FROM vObservation WHERE ID_vAction = {vactionMeta.ID_vAction}";
+                    if (await connection.ExecuteAsync(req) != 1)
+                        return false;
+
+                    req = $"DELETE FROM vAction WHERE ID_vActionMeta = {vactionMeta.ID_vActionMeta}";
+                    if (await connection.ExecuteAsync(req) != 1)
+                        return false;
+                    req = $"DELETE FROM vActionMeta WHERE ID_vActionMeta = {vactionMeta.ID_vActionMeta}";
+                    if (await connection.ExecuteAsync(req) != 1)
+                        return false;
+                }
+
+                return true;
+            }
+            catch(Exception ex)
+            {
+                Gestion.Erreur($"req :{req} / {ex.Message}");
+                return false;
+            }
+            
+
+
         }
     }
 }

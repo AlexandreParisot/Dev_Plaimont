@@ -11,6 +11,7 @@
     xmlns:local="clr-namespace:ComptageVDG.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:viewmodel="clr-namespace:ComptageVDG.ViewModels"
+    Name="Campagne"
     d:DesignHeight="450"
     d:DesignWidth="800"
     Background="White"
@@ -27,25 +28,41 @@
             <!--<viewmodel:CampagneVM x:Key="viewModel" />-->
             <converter:DebugConverter x:Key="DebugConverter" />
             <local:MyConverter x:Key="MyFieldNameCon" />
-
+            <local:FieldNameToBoolConverter x:Key="FieldNameToBoolConverter" />
             <Style x:Key="ut" TargetType="{x:Type igDP:CellValuePresenter}">
                 <Setter Property="FontWeight" Value="Bold" />
             </Style>
-            <Style BasedOn="{x:Static igThemes:DataPresenterGeneric.SummaryRecordPresenter}" TargetType="{x:Type igDP:SummaryRecordPresenter}">
-                <Setter Property="Background">
+            <!--<Style TargetType="{x:Type igDP:SummaryResultPresenter}">
+                <Setter Property="HorizontalContentAlignment" Value="Right" />
+                <Setter Property="HorizontalAlignment" Value="Right" />
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding Converter={StaticResource MyFieldNameCon}}" Value="cptGlomerule">
+                        <Setter Property="HorizontalAlignment" Value="Center" />
+                    </DataTrigger>
+                </Style.Triggers>
+                    
+                --><!--<Setter Property="Template">
                     <Setter.Value>
-                        <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                            <GradientStop Offset="0" Color="#FF64738A" />
-                            <GradientStop Offset="0.5" Color="#FF475262" />
-                            <GradientStop Offset="0.5" Color="#FF2D343E" />
-                            <GradientStop Offset="1" Color="#FF627187" />
-                        </LinearGradientBrush>
-                    </Setter.Value>
-                </Setter>
-                <Setter Property="Foreground" Value="#ffffffff" />
-            </Style>
+                        <ControlTemplate TargetType="{x:Type igDP:SummaryResultPresenter}">
+                            <Border>
+                                <TextBlock
+                                    Margin="5,0,5,0"
+                                    HorizontalAlignment="Right"
+                                    FontSize="30"
+                                    FontWeight="Black"
+                                    Text="{Binding Path=SummaryResult.DisplayTextAsync, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}" />
+                            </Border>
 
-            <Style BasedOn="{x:Static igThemes:DataPresenterGeneric.SummaryResultPresenter}" TargetType="{x:Type igDP:SummaryResultPresenter}">
+                            <ControlTemplate.Triggers>
+                                <DataTrigger Binding="{Binding Converter={StaticResource FieldNameToBoolConverter}}" Value="True">
+                                    <Setter Property="HorizontalContentAlignment" Value="Left" />
+                                </DataTrigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>--><!--
+            </Style>-->
+            <!--<Style x:Key="SummaryCpt" TargetType="{x:Type igDP:SummaryResultPresenter}">
                 <Style.Triggers>
                     <DataTrigger Binding="{Binding Converter={StaticResource MyFieldNameCon}}" Value="cptGlomerule">
                         <Setter Property="FontWeight" Value="Bold" />
@@ -53,7 +70,7 @@
                     </DataTrigger>
                 </Style.Triggers>
                 <Setter Property="FontSize" Value="30" />
-            </Style>
+            </Style>-->
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid x:Name="LayoutRoot">
@@ -117,6 +134,11 @@
                         <Style TargetType="{x:Type igEditors:XamNumericEditor}">
                             <Setter Property="Foreground" Value="#000" />
                         </Style>
+                        <Style TargetType="{x:Type igDP:SummaryResultPresenter}">
+                            <Setter Property="HorizontalAlignment" Value="Right" />
+                            <Setter Property="Margin" Value="5,0"/>
+                            <Setter Property="FontWeight" Value="DemiBold" />
+                        </Style>
                     </igDP:XamDataGrid.Resources>
 
                     <igDP:XamDataGrid.FieldSettings>
@@ -169,7 +191,7 @@
                             </igDP:FieldLayout.SummaryDefinitions>
 
                             <igDP:FieldLayout.Settings>
-                                <igDP:FieldLayoutSettings AutoGenerateFields="False" />
+                                <igDP:FieldLayoutSettings AutoFitMode="Always" AutoGenerateFields="False" />
                             </igDP:FieldLayout.Settings>
 
                             <igDP:FieldLayout.Fields>
@@ -209,48 +231,68 @@
                                     Name="surface"
                                     Format="##0.0000 ha"
                                     Label="Surface" />
-                                <igDP:NumericField
-                                    Name="cptGlomerule"
-                                    Format="##0"
-                                    Label="Glomérule">
-                                    <igDP:Field.Settings>
-                                        <igDP:FieldSettings>
-                                            <igDP:FieldSettings.CellValuePresenterStyle>
-                                                <Style TargetType="{x:Type igDP:CellValuePresenter}">
-                                                    <Setter Property="Background" Value="{Binding Path=DataPresenter.DataContext.ColorGlomerule, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=#EBEBA9}" />
-                                                </Style>
-                                            </igDP:FieldSettings.CellValuePresenterStyle>
-                                        </igDP:FieldSettings>
-                                    </igDP:Field.Settings>
-                                </igDP:NumericField>
-                                <igDP:NumericField
-                                    Name="cptPerforation1"
-                                    Format="##0"
-                                    Label="Perforation">
-                                    <igDP:Field.Settings>
-                                        <igDP:FieldSettings>
-                                            <igDP:FieldSettings.CellValuePresenterStyle>
-                                                <Style TargetType="{x:Type igDP:CellValuePresenter}">
-                                                    <Setter Property="Background" Value="{Binding Path=DataPresenter.DataContext.ColorPerforation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=#EBEBA9}" />
-                                                </Style>
-                                            </igDP:FieldSettings.CellValuePresenterStyle>
-                                        </igDP:FieldSettings>
-                                    </igDP:Field.Settings>
-                                </igDP:NumericField>
-                                <igDP:NumericField
-                                    Name="cptPerforation2"
-                                    Format="##0"
-                                    Label="Perforation 2">
-                                    <igDP:Field.Settings>
-                                        <igDP:FieldSettings>
-                                            <igDP:FieldSettings.CellValuePresenterStyle>
-                                                <Style TargetType="{x:Type igDP:CellValuePresenter}">
-                                                    <Setter Property="Background" Value="{Binding Path=DataPresenter.DataContext.ColorPerforation2, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=#EBEBA9}" />
-                                                </Style>
-                                            </igDP:FieldSettings.CellValuePresenterStyle>
-                                        </igDP:FieldSettings>
-                                    </igDP:Field.Settings>
-                                </igDP:NumericField>
+
+                                <igDP:TemplateField Name="cptGlomerule" Label="Glomérule">
+                                    <igDP:TemplateField.DisplayTemplate>
+                                        <DataTemplate>
+                                            <Grid>
+                                                <Grid
+                                                    HorizontalAlignment="Stretch"
+                                                    VerticalAlignment="Stretch"
+                                                    Panel.ZIndex="1"
+                                                    Background="{Binding ElementName=Campagne, Path=DataContext.ColorGlomerule, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=#FFFFFF}"
+                                                    Opacity="0.4" />
+                                                <TextBlock
+                                                    Margin="5"
+                                                    HorizontalAlignment="Right"
+                                                    FontSize="18"
+                                                    FontWeight="Bold"
+                                                    Text="{Binding Path=(igEditors:TemplateEditor.Editor).Value, Converter={StaticResource DebugConverter}, RelativeSource={RelativeSource Self}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </igDP:TemplateField.DisplayTemplate>
+                                </igDP:TemplateField>
+
+                                <igDP:TemplateField Name="cptPerforation1" Label="Perforation">
+                                    <igDP:TemplateField.DisplayTemplate>
+                                        <DataTemplate>
+                                            <Grid>
+                                                <Grid
+                                                    HorizontalAlignment="Stretch"
+                                                    VerticalAlignment="Stretch"
+                                                    Panel.ZIndex="1"
+                                                    Background="{Binding ElementName=Campagne, Path=DataContext.ColorPerforation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=#FFFFFF}"
+                                                    Opacity="0.4" />
+                                                <TextBlock
+                                                    Margin="5"
+                                                    HorizontalAlignment="Right"
+                                                    FontSize="18"
+                                                    FontWeight="Bold"
+                                                    Text="{Binding Path=(igEditors:TemplateEditor.Editor).Value, Converter={StaticResource DebugConverter}, RelativeSource={RelativeSource Self}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </igDP:TemplateField.DisplayTemplate>
+                                </igDP:TemplateField>
+                                <igDP:TemplateField Name="cptPerforation2" Label="Perforation 2">
+                                    <igDP:TemplateField.DisplayTemplate>
+                                        <DataTemplate>
+                                            <Grid>
+                                                <Grid
+                                                    HorizontalAlignment="Stretch"
+                                                    VerticalAlignment="Stretch"
+                                                    Panel.ZIndex="1"
+                                                    Background="{Binding ElementName=Campagne, Path=DataContext.ColorPerforation2, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=#FFFFFF}"
+                                                    Opacity="0.4" />
+                                                <TextBlock
+                                                    Margin="5"
+                                                    HorizontalAlignment="Right"
+                                                    FontSize="18"
+                                                    FontWeight="Bold"
+                                                    Text="{Binding Path=(igEditors:TemplateEditor.Editor).Value, Converter={StaticResource DebugConverter}, RelativeSource={RelativeSource Self}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </igDP:TemplateField.DisplayTemplate>
+                                </igDP:TemplateField>
                             </igDP:FieldLayout.Fields>
                         </igDP:FieldLayout>
                     </igDP:XamDataGrid.FieldLayouts>

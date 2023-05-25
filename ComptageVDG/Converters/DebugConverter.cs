@@ -12,7 +12,9 @@ namespace ComptageVDG.Converters
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            var debug = value;            
+            var debug = value;    
+            if(debug != null)
+                return value;
             return value;
         }
 

@@ -43,6 +43,21 @@ namespace ComptageVDG.Views
         }
     }
 
+    public class FieldNameToBoolConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value == null)
+                return value;
+            var name = ((Infragistics.Windows.DataPresenter.SummaryResult)value).SourceField.Name;
+            return name == "cptGlomerule" ? true : false;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        {
+            return value;
+        }
+    }
     public class MyConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)

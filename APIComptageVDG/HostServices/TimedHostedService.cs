@@ -1,4 +1,5 @@
 ﻿using APIComptageVDG.Helpers;
+using APIComptageVDG.Provider;
 using APIComptageVDG.Services;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -10,6 +11,7 @@ using RestSharp;
 using System.Configuration;
 using System.Reflection;
 using System.Security.Policy;
+using static Org.BouncyCastle.Math.EC.ECCurve;
 
 namespace APIComptageVDG.HostServices
 {
@@ -131,11 +133,53 @@ namespace APIComptageVDG.HostServices
     public class TimedHostedService:IHostedService, IDisposable
     {
 
+        #region service lavilog / Instagrappe
+
+        private InstagrappeApiProvider _provider;
+        private InstagrappeServcie _instaService;
+        private LavilogService _service;
+        private bool _initService = false;
+
+        private bool initService()
+        {
+           var  _config = configWs;
+            //_service = service;
+            if (_service == null)
+                _service = new LavilogService();
+
+            if (!string.IsNullOrEmpty(_config.GetConnectionString("SqlConnexion")))
+                _service.SetConnexion(_config.GetConnectionString("SqlConnexion")!);
+            else
+                return false;
+
+            var url_token = _config["Instagrappe:URL_Token"];
+            var url_api = _config["Instagrappe:URL_API"];
+            var user = _config["Instagrappe:ID"];
+            var pwd = _config["Instagrappe:MDP"];
+
+            if (_instaService == null)
+                _instaService = new InstagrappeServcie();
+
+            if (!string.IsNullOrEmpty(url_token) && !string.IsNullOrEmpty(url_api) && !string.IsNullOrEmpty(user) && !string.IsNullOrEmpty(pwd))
+            {
+                _provider = new InstagrappeApiProvider(url_token, url_api, user, pwd);
+                _instaService.SetApiProviderInstagrappe(_provider);
+            }
+            else
+                return false;
+
+            return true;
+        }
+        #endregion
+
+
+
         private Timer _timer;
         private CancellationTokenSource _stoppingCts;
         private IHost myHost;
         private static IConfiguration configWs;
         private static WebApplication app;
+        private string tacheSynchro = string.Empty;
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
            Host.CreateDefaultBuilder(args)
@@ -145,15 +189,9 @@ namespace APIComptageVDG.HostServices
                    {
                        configWs = new ConfigurationBuilder()
                                 .SetBasePath(Gestion.Current_Dir).AddJsonFile("appsettings.json").Build();
+                       Gestion.Obligatoire($"Config  url : {configWs["url"]}");
 
                        var app = webBuilder.UseContentRoot(Gestion.Current_Dir).UseKestrel().UseConfiguration(configWs).UseUrls(configWs["url"]);
-
-                       //init connexion string dans le service lavilog
-                       //var connectionString = app.Configure.GetConnectionString("SqlConnexion");
-                       //var serviceSql = (LavilogService)app.ConfigureServices.GetService(typeof(LavilogService));
-                       //if (serviceSql != null)
-                       //    serviceSql.SetConnexion(connectionString);
-
                        app.UseIISIntegration().UseStartup<Startup>();
                    }
                    catch (Exception ex)
@@ -176,16 +214,33 @@ namespace APIComptageVDG.HostServices
 
 
             myHost = CreateHostBuilder(null).Build();
-            myHost.StartAsync(_stoppingCts.Token);
-            int time = 30;
-            if (!int.TryParse(configWs?["Gestion:timer"], out time))
+            myHost.StartAsync(_stoppingCts.Token).ContinueWith((x) =>
             {
-                time = 30;
-            }
-            Gestion.Obligatoire($"Service Timer : {time} s");
-            _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromSeconds(time));
+                int time = 30;
+                if (!int.TryParse(configWs?["Gestion:timer"], out time))
+                {
+                    time = 30;
+                }
+                Gestion.Obligatoire($"Service Timer : {time} s");
+                if (!string.IsNullOrEmpty(configWs?["Gestion:tacheSynchro"]))
+                {
+                    tacheSynchro = configWs?["Gestion:tacheSynchro"];
+                    Gestion.Obligatoire($"Une tache de Synchro avec Instagrappe est plannifier à {tacheSynchro}");
+                    _initService = initService();
+                    if (_initService)
+                        Gestion.Obligatoire($"l'initialisation des services pour la tache planifier sont reussi.");
+                    else
+                        Gestion.Erreur($"l'initialisation des services pour la tache planifier sont en erreur.");
+                }
+                else
+                    Gestion.Obligatoire($"il n'y a pas de tache planifier pour la synchro auto d'instagraape.");
+
+                _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromSeconds(time));
 
 
+            });
+           
+           
             return Task.CompletedTask;
         }
 
@@ -194,12 +249,16 @@ namespace APIComptageVDG.HostServices
             try
             {
                 StatusService();
+                SynchroInstagrappe();
+
             }
             catch (Exception ex)
             {
                 Gestion.Obligatoire("Timer API Err : " + ex.Message);
             }
         }
+
+        
 
         public async Task StopAsync(CancellationToken stoppingToken)
         {
@@ -221,6 +280,73 @@ namespace APIComptageVDG.HostServices
             // return await Task.CompletedTask;
         }
 
+
+        private async void SynchroInstagrappe()
+        {
+
+            //verifier si la derniére synchre est inferieure a l'heure de la et que c'est l'heure voulu
+            if (tacheSynchro == DateTime.Now.ToString("HH:mm"))
+            {
+                if (_initService)
+                {
+                    var lastSynchro = await _service.AsyncGetLastSynchro();
+                    DateTime lastSynchroDateLavilog;
+                    DateTime lastSynchroDate;
+                    if (!string.IsNullOrEmpty(lastSynchro) && DateTime.TryParse(lastSynchro, out lastSynchroDateLavilog) && DateTime.TryParse($"{DateTime.Today.ToString("dd/MM/yyyy")} {tacheSynchro}:00", out lastSynchroDate))
+                    {
+                        if (lastSynchroDateLavilog < lastSynchroDate)
+                        {
+                            synchroGrappe();
+                        }
+                    }
+                    else if (!string.IsNullOrEmpty(lastSynchro))
+                    {
+                        synchroGrappe();
+                    }
+                    else
+                        Gestion.Erreur($"Impossible de faire la synchro : lastSynchroDate {lastSynchro}");
+                }
+            }
+            //lancer la synchro
+
+        }
+
+        private async void synchroGrappe()
+        {
+
+            Gestion.Obligatoire($"Lancement de la synchro Intagrappe.");
+            // appel API  public async Task<ActionResult<bool>> GetSynchroDeclaration(int year)
+            var url = $"http://localhost:{configWs?["url"].Split(":").ToArray()[2].ToString().Trim()}/CampagneVDG/Instagrappe/SynchroDeclaration?year={DateTime.Today.ToString("yyyy")}";
+            var client = new RestClient(url);
+
+            var request = new RestRequest("", Method.Get);
+            RestResponse response = client.Execute(request);
+            if (response.StatusCode == System.Net.HttpStatusCode.OK)
+            {
+
+                // appel API public async Task<ActionResult<bool>> GetSynchroCompteur(int year)
+
+                url = $"http://localhost:{configWs?["url"].Split(":").ToArray()[2].ToString().Trim()}/CampagneVDG/Instagrappe/SynchroCompteur?year={DateTime.Today.ToString("yyyy")}";
+
+                client = new RestClient(url);
+
+                request = new RestRequest("", Method.Get);
+                response = client.Execute(request);
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    if (await _service.AsyncSetLastSynchro())
+                    {
+                        Gestion.Obligatoire($"Synchro instagrappe effectué : {DateTime.Now}");
+
+                    }
+                }
+                else
+                    Gestion.Erreur($"Erreur lors de la synchro des compteurs");
+            }
+            else
+                Gestion.Erreur($"Erreur lors de la synchro des parcelles");
+
+        }
 
         private void StatusService()
         {

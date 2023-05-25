@@ -224,7 +224,7 @@ namespace ComptageVDG.DataAccess
 
 
                 var result = CallApi(query, _httpMethod, cCommandeGet);
-                if (result.IsSuccessStatusCode)
+                if (result != null && result.IsSuccessStatusCode)
                 {
                     var str = result.Content.ReadAsStringAsync().GetAwaiter().GetResult();
                     if (!string.IsNullOrEmpty(str))
@@ -234,9 +234,7 @@ namespace ComptageVDG.DataAccess
                     }         
                 }
 
-                Type type = typeof(T);
-                object instance = Activator.CreateInstance(type);
-                return (T)instance;
+                return default(T);
 
             }
             catch (Exception ex)

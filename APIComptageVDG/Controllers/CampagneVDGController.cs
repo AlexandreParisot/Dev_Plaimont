@@ -314,7 +314,7 @@ namespace APIComptageVDG.Controllers
         [HttpGet("Instagrappe/SynchroDeclaration")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<bool>> GetSynchroDeclaration(int annee)
+        public async Task<ActionResult<bool>> GetSynchroDeclaration(int year)
         {
 
             if (_instaService.SuccessConfig)
@@ -346,23 +346,29 @@ namespace APIComptageVDG.Controllers
         [HttpGet("Instagrappe/SynchroCompteur")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<bool>> GetSynchroCompteur(int annee)
+        public async Task<ActionResult<bool>> GetSynchroCompteur(int year)
         {
 
             if (_instaService.SuccessConfig)
             {
-                var result = await GetEngagementVersDeGrappe(annee.ToString());
-                var Engagement = JsonSerialize.Deserialize<Engagements>(result.Value);
-                if (Engagement != null)
+                var result = await GetEngagementVersDeGrappe(year.ToString());
+                if(((ObjectResult)result.Result).Value is Engagements Engagement)
                 {
-                    //TODO Procedure creation des observations.
-                    return Ok(true);
+                    if (Engagement != null)
+                       return Ok(await _service.AsyncSetCptParcellesCampagne(Engagement));                    
+                    else
+                    {
+                        Gestion.Erreur($"Erreur dans la recuperation de l'engagement.");
+                        return Ok(false);
+                    }
                 }
                 else
                 {
-                    Gestion.Erreur(result.Value);
+                    Gestion.Erreur(((ObjectResult)result.Result).Value.ToString());
                     return Ok(false);
-                }               
+                }
+                
+                
             }
             else
                 Gestion.Erreur("Il manque des informaitons pour le parametrage de l'appel de l'api instagrappe.");
