@@ -1,8 +1,10 @@
 ﻿using ComptageVDG.ViewModels;
 using Infragistics.Windows.DataPresenter;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,6 +17,10 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Infragistics.Documents.Excel;
+
+using System.Collections;
+using Infragistics.Windows.DataPresenter.ExcelExporter;
 
 namespace ComptageVDG.Views
 {
@@ -41,33 +47,63 @@ namespace ComptageVDG.Views
                 DataContext = null;
             }
         }
-    }
 
-    public class FieldNameToBoolConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        private void EXPORT_Click(object sender, RoutedEventArgs e)
         {
-            if (value == null)
-                return value;
-            var name = ((Infragistics.Windows.DataPresenter.SummaryResult)value).SourceField.Name;
-            return name == "cptGlomerule" ? true : false;
+
+           
+            this.SaveExport();
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
-        {
-            return value;
-        }
-    }
-    public class MyConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
-        {
-            return (value as SummaryResultEntry).SummaryResult.SourceField.Label.ToString();
-        }
 
-        public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+
+        private void SaveExport()
         {
-            return value;
+            SaveFileDialog dialog;
+            DataPresenterExcelExporter exporter = (DataPresenterExcelExporter)this.Resources["excelExporter1"];
+             dialog = new SaveFileDialog { Filter = "Excel files|*.xlsx", DefaultExt = "xlsx" };
+           
+
+            if (dialog.ShowDialog() == true)
+            {
+                try
+                {
+                    exporter.Export(xamDataGridCampagne , dialog.FileName, WorkbookFormat.Excel2007);
+                   
+                }
+                catch (Exception ex)
+                {
+                    System.Windows.MessageBox.Show(ex.Message);
+                }
+            }
         }
     }
+
+    //public class FieldNameToBoolConverter : IValueConverter
+    //{
+    //    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    //    {
+    //        if (value == null)
+    //            return value;
+    //        var name = ((Infragistics.Windows.DataPresenter.SummaryResult)value).SourceField.Name;
+    //        return name == "cptGlomerule" ? true : false;
+    //    }
+
+    //    public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+    //    {
+    //        return value;
+    //    }
+    //}
+    //public class MyConverter : IValueConverter
+    //{
+    //    public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+    //    {
+    //        return (value as SummaryResultEntry).SummaryResult.SourceField.Label.ToString();
+    //    }
+
+    //    public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+    //    {
+    //        return value;
+    //    }
+    //}
 }

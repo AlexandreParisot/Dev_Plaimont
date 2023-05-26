@@ -1,5 +1,8 @@
 ﻿using ComptageVDG.Models;
 using ComptageVDG.ViewModels;
+using Infragistics.Documents.Excel;
+using Infragistics.Windows.DataPresenter.ExcelExporter;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -49,5 +52,30 @@ namespace ComptageVDG.Views
             //}
         }
 
+        private void EXPORT_Click(object sender, RoutedEventArgs e)
+        {
+            SaveExport();
+        }
+
+        private void SaveExport()
+        {
+            SaveFileDialog dialog;
+            DataPresenterExcelExporter exporter = (DataPresenterExcelExporter)this.Resources["excelExporter1"];
+            dialog = new SaveFileDialog { Filter = "Excel files|*.xlsx", DefaultExt = "xlsx" };
+
+
+            if (dialog.ShowDialog() == true)
+            {
+                try
+                {
+                    exporter.Export(xamDataGridParcelle, dialog.FileName, WorkbookFormat.Excel2007);
+
+                }
+                catch (Exception ex)
+                {
+                    System.Windows.MessageBox.Show(ex.Message);
+                }
+            }
+        }
     }
 }

@@ -7,6 +7,7 @@
     xmlns:ig="http://schemas.infragistics.com/xaml"
     xmlns:igDP="http://infragistics.com/DataPresenter"
     xmlns:igEditors="http://infragistics.com/Editors"
+    xmlns:igExcelExporter="http://infragistics.com/ExcelExporter"
     xmlns:igThemes="http://infragistics.com/Themes"
     xmlns:local="clr-namespace:ComptageVDG.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -27,8 +28,8 @@
             </ResourceDictionary.MergedDictionaries>
             <!--<viewmodel:CampagneVM x:Key="viewModel" />-->
             <converter:DebugConverter x:Key="DebugConverter" />
-            <local:MyConverter x:Key="MyFieldNameCon" />
-            <local:FieldNameToBoolConverter x:Key="FieldNameToBoolConverter" />
+            <igExcelExporter:DataPresenterExcelExporter x:Key="excelExporter1" />
+            
             <Style x:Key="ut" TargetType="{x:Type igDP:CellValuePresenter}">
                 <Setter Property="FontWeight" Value="Bold" />
             </Style>
@@ -109,7 +110,22 @@
                                 TextAlignment="Center" />
                         </StackPanel>
                     </Button>
-
+                    <Button
+                        x:Name="EXPORT"
+                        Margin="3"                        
+                        Click="EXPORT_Click">
+                        <StackPanel Margin="3" Orientation="Horizontal">
+                            <Image
+                                Width="20"
+                                VerticalAlignment="Center"
+                                Source="/Views/Images/icons8-excel-64.png" />
+                            <TextBlock
+                                Margin="3"
+                                VerticalAlignment="Center"
+                                Text="Export Excel"
+                                TextAlignment="Center" />
+                        </StackPanel>
+                    </Button>
                     <TextBlock
                         Margin="5,0,0,0"
                         VerticalAlignment="Center"
@@ -141,6 +157,8 @@
                         </Style>
                     </igDP:XamDataGrid.Resources>
 
+                   
+                    
                     <igDP:XamDataGrid.FieldSettings>
                         <igDP:FieldSettings
                             AllowEdit="False"

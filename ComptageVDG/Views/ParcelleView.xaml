@@ -7,6 +7,7 @@
     xmlns:ig="http://schemas.infragistics.com/xaml"
     xmlns:igDP="http://infragistics.com/DataPresenter"
     xmlns:igEditors="http://infragistics.com/Editors"
+    xmlns:igExcelExporter="http://infragistics.com/ExcelExporter"
     xmlns:local="clr-namespace:ComptageVDG.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:viewmodel="clr-namespace:ComptageVDG.ViewModels"
@@ -23,7 +24,7 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="pack://application:,,,/Resources/DynamicStyles/DynamicStyles.xaml" />
             </ResourceDictionary.MergedDictionaries>
-
+            <igExcelExporter:DataPresenterExcelExporter x:Key="excelExporter1" />
             <SolidColorBrush x:Key="GreenBrush" Color="#FF9FB328" />
             <SolidColorBrush x:Key="RedBrush" Color="#FFDC3F76" />
             <!--<viewmodel:ParcelleVM x:Key="viewModel" />-->
@@ -83,6 +84,22 @@
                             VerticalAlignment="Center"
                             Text="Rafraîchir"
                             TextAlignment="Center" />
+                    </StackPanel>
+                </Button>
+                <Button
+                        x:Name="EXPORT"
+                        Margin="3"                        
+                        Click="EXPORT_Click">
+                    <StackPanel Margin="3" Orientation="Horizontal">
+                        <Image
+                                Width="20"
+                                VerticalAlignment="Center"
+                                Source="/Views/Images/icons8-excel-64.png" />
+                        <TextBlock
+                                Margin="3"
+                                VerticalAlignment="Center"
+                                Text="Export Excel"
+                                TextAlignment="Center" />
                     </StackPanel>
                 </Button>
                 <Button
