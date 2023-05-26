@@ -223,6 +223,11 @@
                                 Width="50"
                                 Label="Id UT"
                                 Visibility="Collapsed" />
+                            <igDP:NumericField
+                                Name="id_propriete"
+                                Width="50"
+                                Label="Id Propriété"
+                                Visibility="Collapsed" />
                             <igDP:TextField Name="site_technique" Label="Site Technique" />
                             <igDP:TextField Name="site_vendange" Label="Site Vendange" />
                             <igDP:TextField Name="propriete" Label="Propriété" />
