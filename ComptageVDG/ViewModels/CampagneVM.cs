@@ -53,24 +53,12 @@ namespace ComptageVDG.ViewModels
         private void PayloadMessage(MessagePayload<MessageEventArgs> obj)
         {
             if (obj.What.Sender == "CHANGEDATE")
-            {
-                if ((obj.What.Data is string dateCp) && !string.IsNullOrEmpty(dateCp))
-                {
-                    ShowLoading($"Chargement de la campagne {dateCp}");
+               if ((obj.What.Data is string dateCp) && !string.IsNullOrEmpty(dateCp))
                     LoadParcelles(dateCp);
-                    ClearLoading();
-                }
-            }
+             
             if(obj.What.Sender == "REFRESH")
-            {
                 if(obj.What.Data is string dateCp && !string.IsNullOrEmpty(dateCp))
-                {
-                    
-                    LoadParcelles(dateCp);                   
-                   
-                }
-            }
-
+                    LoadParcelles(dateCp);  
         }
 
 
@@ -123,7 +111,7 @@ namespace ComptageVDG.ViewModels
                     else
                         ColorPerforation = "#f58e87";
                 }
-                var perfo2 = lstPeriode.FirstOrDefault(x => x.Name.ToLower() == "perforation");
+                var perfo2 = lstPeriode.FirstOrDefault(x => x.Name.ToLower() == "perforation2");
                 if (perfo2 != null)
                 {
                     if (perfo2.DateDebut <= DateTime.Today && perfo2.DateFin >= DateTime.Today)
@@ -144,8 +132,10 @@ namespace ComptageVDG.ViewModels
                    await ServiceCampagne.asyncLoadYearInCampagne(dateCp).ContinueWith(
                     async (x) => {
                         ClearLoading();
-                        await ColorCompteur(dateCp);
-                        if (ParcelleModelsinCampagne != null && ParcelleModelsinCampagne.Count > 0)
+                        ParcelleModelsinCampagne = x.Result;
+                        await ColorCompteur(dateCp);                      
+                            
+                         if (ParcelleModelsinCampagne != null && ParcelleModelsinCampagne.Count > 0) { }
                             InfoNotif($"Nombre de parcelle au comptage : {ParcelleModelsinCampagne.Count}");
                     });
                   await asyncGetLastSynchro();

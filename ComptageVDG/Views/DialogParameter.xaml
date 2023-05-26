@@ -8,7 +8,7 @@
     xmlns:local="clr-namespace:ComptageVDG.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:viewmodels="clr-namespace:ComptageVDG.ViewModels.Connexion"
-    Title="Comptage vers de grappe"
+    Title="Comptage vers de grappe - v1.0.20230526"
     Width="550"
     Height="300"
     MinWidth="350"

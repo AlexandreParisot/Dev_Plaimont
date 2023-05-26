@@ -297,15 +297,15 @@ namespace APIComptageVDG.Services
 						inner join  dbo.vActionUniteTravail utVa on utVa.ID_vAction = ob.ID_vAction and utVa.ID_vUniteTravail = ut.ID_vUniteTravail
                         inner join dbo.vAction vA on vA.ID_vAction = ob.ID_vAction and YEAR(va.Action_Date) = {year}
 						where ob.ID_vObservationProgramme = ( select [ID_vObservationProgramme] from dbo.vObservationProgramme where Programme_Code = 'CVDG-G' )) cptGlomerule
-				  , (select  [Comptage] from [LAVILOG_TEST_M3].dbo.vObservation ob
+				  , (select  [Comptage] from dbo.vObservation ob
 						inner join  dbo.vActionUniteTravail utVa on utVa.ID_vAction = ob.ID_vAction and utVa.ID_vUniteTravail = ut.ID_vUniteTravail
                         inner join dbo.vAction vA on vA.ID_vAction = ob.ID_vAction and YEAR(va.Action_Date) = {year}
 						where ob.ID_vObservationProgramme = ( select [ID_vObservationProgramme] from dbo.vObservationProgramme where Programme_Code = 'CVDG-P1' )) cptPerforation1 
-				  , (select  [Comptage] from [LAVILOG_TEST_M3].dbo.vObservation ob
+				  , (select  [Comptage] from dbo.vObservation ob
 						inner join  dbo.vActionUniteTravail utVa on utVa.ID_vAction = ob.ID_vAction and utVa.ID_vUniteTravail = ut.ID_vUniteTravail
                         inner join dbo.vAction vA on vA.ID_vAction = ob.ID_vAction and YEAR(va.Action_Date) = {year}
 						where ob.ID_vObservationProgramme = ( select [ID_vObservationProgramme] from dbo.vObservationProgramme where Programme_Code = 'CVDG-P2' )) cptPerforation2
-    from [LAVILOG_TEST_M3].dbo.vUniteTravail UT                                                                                                                                                               
+    from dbo.vUniteTravail UT                                                                                                                                                               
                    inner join dbo.vPropriete P on P.ID_vPropriete = UT.ID_vPropriete                                                                                                        
                    inner join dbo.pTmpTravailCompoColonne TMP on TMP.ID_vUniteTravail = UT.ID_vUniteTravail                                                                                 
                    left  join dbo.pTmpNoteColonne_vUniteTravail NOTE ON NOTE.ID_Target = UT.ID_vUniteTravail 
@@ -407,7 +407,7 @@ namespace APIComptageVDG.Services
 				  , null cptGlomerule
 				  , null cptPerforation1 
 				  , null cptPerforation2
-    from [LAVILOG_TEST_M3].dbo.vUniteTravail UT                                                                                                                                                               
+    from dbo.vUniteTravail UT                                                                                                                                                               
                    inner join dbo.vPropriete P on P.ID_vPropriete = UT.ID_vPropriete                                                                                                        
                    inner join dbo.pTmpTravailCompoColonne TMP on TMP.ID_vUniteTravail = UT.ID_vUniteTravail                                                                                 
                    left  join dbo.pTmpNoteColonne_vUniteTravail NOTE ON NOTE.ID_Target = UT.ID_vUniteTravail 
@@ -503,8 +503,15 @@ namespace APIComptageVDG.Services
                         if (await connection.ExecuteAsync($"Delete from dbo.tNote where Note_Categorie = 'CVDG' and Note_Valeur = '{year}' and Note_Fichier = 'vUniteTravail' and ID_Target = {parcelleModel.id_parcelle}") == 0)
                         {
                             Gestion.Erreur($"Err Delete campagne {year} - Parcelle {parcelleModel.id_parcelle} - {parcelleModel.nameParcelle} ");
-                        }else
+                        }
+                        else
+                        {
+                           await asyncDeleteObservationCpt(parcelleModel.id_parcelle.ToString(), year.ToString(), "CVDG-G");
+                           await asyncDeleteObservationCpt(parcelleModel.id_parcelle.ToString(), year.ToString(), "CVDG-P1");
+                           await asyncDeleteObservationCpt(parcelleModel.id_parcelle.ToString(), year.ToString(), "CVDG-P2");
                             result.Add(parcelleModel.id_parcelle);
+                        }
+                            
                     }
                     //si il faut l'ajoute insert.
                     else if (parcelleModel.inCampagne && !trouve)
@@ -617,7 +624,7 @@ namespace APIComptageVDG.Services
 
 
 
-            sql = $@"Insert INTO[LAVILOG_TEST_M3].dbo.vObservation
+            sql = $@"Insert INTO dbo.vObservation
                                 (
                                     ID_vAction
                                     , ID_vObservationProgramme

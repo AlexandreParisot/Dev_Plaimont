@@ -246,6 +246,7 @@ namespace APIComptageVDG.Services
                             if(instaEngagementCardre.v_num_engagement_cadre == ouvertureParcelle.v_num_engagement_cadre)
                             {
                                 trouve = true;
+                                break;
                             }
                         } 
                         if(!trouve)
@@ -253,7 +254,9 @@ namespace APIComptageVDG.Services
                     }
                     if(lstInstOuvert.Count > 0)
                     {
-                        ParcelleOuverteInstagrappe.engagement_cadre.ToList().AddRange(lstInstOuvert);
+                       var engagementCadre = ParcelleOuverteInstagrappe.engagement_cadre.ToList();
+                        engagementCadre.AddRange(lstInstOuvert);
+                        ParcelleOuverteInstagrappe.engagement_cadre = engagementCadre;
                     }
 
                     ListSend = ParcelleOuverteInstagrappe;
