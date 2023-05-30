@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.OpenApi.Models;
+using Renci.SshNet.Sftp;
 using RestSharp;
 using System.Configuration;
 using System.Reflection;
@@ -305,10 +306,56 @@ namespace APIComptageVDG.HostServices
                     }
                     else
                         Gestion.Erreur($"Impossible de faire la synchro : lastSynchroDate {lastSynchro}");
+
+                    PurgeFichierSynchro();
                 }
             }
             //lancer la synchro
 
+        }
+
+        private void PurgeFichierSynchro()
+        {
+            Gestion.Obligatoire($"Debut de la purge des fichiers de synchros. ");
+            int nb_delete_file = 0;
+            if (System.IO.Directory.Exists(System.IO.Path.Combine(Gestion.Current_Dir, "API", "Echec"))){
+                foreach(var file in System.IO.Directory.GetFiles(System.IO.Path.Combine(Gestion.Current_Dir, "API", "Echec")))
+                {
+                    FileInfo fi = new FileInfo(file);
+                    if(fi.CreationTime >= DateTime.Now.AddDays(-30)){
+                        try
+                        {
+                            fi.Delete();
+                            nb_delete_file++;
+                        }
+                        catch(Exception ex) {
+                            Gestion.Erreur($"Impossible de supprimer : {fi.Name} - {ex.Message}");
+                        }
+                    }
+                }
+            }
+
+            if (System.IO.Directory.Exists(System.IO.Path.Combine(Gestion.Current_Dir, "API", "Reussi")))
+            {
+                foreach (var file in System.IO.Directory.GetFiles(System.IO.Path.Combine(Gestion.Current_Dir, "API", "Reussi")))
+                {
+                    FileInfo fi = new FileInfo(file);
+                    if (fi.CreationTime >= DateTime.Now.AddDays(-30))
+                    {
+                        try
+                        {
+                            fi.Delete();
+                            nb_delete_file++;
+                        }
+                        catch (Exception ex)
+                        {
+                            Gestion.Erreur($"Impossible de supprimer : {fi.Name} - {ex.Message}");
+                        }
+                    }
+                }
+            }
+            Gestion.Obligatoire($"Nombre de fichier supprimé(s) : {nb_delete_file}");
+            Gestion.Obligatoire($"Fin de la purge des fichiers de synchros. ");
         }
 
         private async void synchroGrappe()

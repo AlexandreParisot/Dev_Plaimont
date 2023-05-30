@@ -73,21 +73,18 @@ namespace APIComptageVDG.Services
                 throw new ArgumentNullException("La connexion est null.");
 
             var campagnes = new Dictionary<int,string>();
+            var result = await connection.QueryAsync($"select distinct Codlib1 from dbo.sPortailParametre where Prefixe = 'CVDG' and Codlib1 <> ''  and Codlib2 <> ''  order by Codlib1 desc ");
 
-            var reader = await connection.ExecuteReaderAsync($"select distinct Codlib1 from dbo.sPortailParametre where Prefixe = 'CVDG' and Codlib1 is not null and Codlib2 is not null order by Codlib1 desc ");
-
-            
-                while (reader.Read())
+            foreach(var campagn in result)
+            {
+                try
                 {
-                    try
-                    {
-                        campagnes.Add( int.Parse(reader.GetString(0)),$"Campagne {reader.GetString(0)}");
-                    }
-                    catch (Exception ex)
-                    {
-                        Gestion.Erreur($"Erreur sur la recuperation des campagnes. {ex.Message}");
-                    }
-                }           
+                    campagnes.Add(int.Parse(campagn.Codlib1), $"Campagne {campagn.Codlib1}");
+                }catch(Exception ex)
+                {
+                    Gestion.Erreur($"Erreur sur la recuperation des campagnes. {ex.Message}");
+                }
+            }
 
             return campagnes;
         }
@@ -99,18 +96,17 @@ namespace APIComptageVDG.Services
                 throw new ArgumentNullException("La connexion est null.");
 
             var strSynchro = string.Empty;
-            var reader = await connection.ExecuteReaderAsync($"select Valeur from dbo.sPortailParametre where Prefixe = 'CVDG' and Codlib1 ='last synchro' ");
+            var result = await connection.QueryAsync($"select Valeur from dbo.sPortailParametre where Prefixe = 'CVDG' and Codlib1 ='last synchro' ");
 
-
-            while (reader.Read())
+            foreach (var synchro in result)
             {
                 try
                 {
-                    strSynchro = $"{reader.GetString(0)}";
+                    strSynchro = $"{synchro.Valeur}";
                 }
                 catch (Exception ex)
                 {
-                    Gestion.Erreur($"Erreur sur la recuperation des campagnes. {ex.Message}");
+                    Gestion.Erreur($"Erreur lors de la recupération de l'heure de synchro instagrappe. {ex.Message}");
                 }
             }
 
@@ -123,23 +119,24 @@ namespace APIComptageVDG.Services
                 throw new ArgumentNullException("La connexion est null.");
 
             var strSynchro = string.Empty;
-            var reader = await connection.ExecuteReaderAsync($"select  1 from dbo.sPortailParametre where Prefixe = 'CVDG' and Codlib2 is null  and Codlib1 ='last synchro'");
+            var query = await connection.QueryAsync($"select 1 Trouve from dbo.sPortailParametre where Prefixe = 'CVDG' and Codlib2 is null  and Codlib1 ='last synchro'");
             var trouve = false;
             var result = true;
             var req = string.Empty;
-            while (reader.Read())
+
+            foreach (var synchro in query)
             {
                 try
                 {
-                    if(reader.GetInt32(0) ==1)
+                    if (synchro.Trouve == 1)
                         trouve = true;
                 }
                 catch (Exception ex)
                 {
-                    Gestion.Erreur($"Erreur sur la recuperation des campagnes. {ex.Message}");
+                    Gestion.Erreur($"Erreur lors du controle de l'heure de synchro instagrappe. {ex.Message}");
                 }
             }
-
+          
 
             if (trouve)
             {
