@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Policy;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -72,5 +73,17 @@ namespace ComptageVDG.ViewModels
             return true;
         }
 
+        internal async Task<bool> TestConnexionServeur(string url)
+        {
+            if (LoadApp.IniModel == null)
+                    LoadApp.IniModel = new Models.FileIniModel();
+
+                LoadApp.IniModel.UrlService = url;
+
+            if (LoadApp.WriteIni())
+                return await loadApplication();
+            else 
+                return false;   
+        }
     }
 }

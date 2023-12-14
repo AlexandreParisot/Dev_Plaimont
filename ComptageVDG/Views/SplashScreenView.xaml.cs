@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Security.Policy;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -48,18 +49,28 @@ namespace ComptageVDG.Views
             }
             else if (splashVm.lastErreur == "Vous n'avez pas de fichier ini." || splashVm.lastErreur == "La connexion a échoué.")
             {
-                // Charge la saisi url showmodal
-                DialogParameter dialogParameter = new DialogParameter();
-                dialogParameter.ShowDialog();
-
-                if (await splashVm.loadApplication())
-                {
-                    // Charge la fenêtre principale
-                    MainView mainWindow = new MainView();
-                    mainWindow.Show();
+                // test d'abord avec le serveur d'api aws.
+                if (await splashVm.TestConnexionServeur("http://aws.plaimont.fr:5200")){                    
+                        // Charge la fenêtre principale
+                        MainView mainWindow = new MainView();
+                        mainWindow.Show();                    
                 }
-                else               
-                    MessageBox.Show(splashVm.lastErreur,"Comptage vers de grappe", MessageBoxButton.OK, MessageBoxImage.Error);               
+                else {
+
+                    // Charge la saisi url showmodal
+                    DialogParameter dialogParameter = new DialogParameter();
+                    dialogParameter.ShowDialog();
+
+                    if (await splashVm.loadApplication())
+                    {
+                        // Charge la fenêtre principale
+                        MainView mainWindow = new MainView();
+                        mainWindow.Show();
+                    }
+                    else
+                        MessageBox.Show(splashVm.lastErreur, "Comptage vers de grappe", MessageBoxButton.OK, MessageBoxImage.Error);
+
+                }           
             }
             else
                MessageBox.Show(splashVm.lastErreur,"Comptage vers de grappe", MessageBoxButton.OK, MessageBoxImage.Error);
