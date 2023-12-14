@@ -16,6 +16,8 @@ namespace ComptageVDG.ViewModels.Connexion
         
         public event EventHandler Close;
         public string Url { get => _url; set => SetProperty(ref _url, value);}
+
+        public string Version { get { return $"ver : 1.0.1"; } }
         
         private string _username;
         public string Username { get => _username; set => SetProperty(ref _username, value); }
