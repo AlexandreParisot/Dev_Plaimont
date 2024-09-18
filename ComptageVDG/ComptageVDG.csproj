@@ -29,7 +29,7 @@
     <Resource Include="Views\Images\icons8-piccollage-64.ico" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="CsvHelper" Version="30.0.1" />
+    <PackageReference Include="CsvHelper" Version="33.0.1" />
     <PackageReference Include="Infragistics.WPF" Version="22.2.47" />
     <PackageReference Include="Infragistics.WPF.DataGrids" Version="22.2.47" />
     <PackageReference Include="Infragistics.WPF.DataGrids.Excel" Version="22.2.47" />
@@ -37,7 +37,7 @@
     <PackageReference Include="Infragistics.WPF.Excel" Version="22.2.47" />
     <PackageReference Include="Infragistics.WPF.Menus" Version="22.2.47" />
     <PackageReference Include="Infragistics.WPF.Themes.Metro" Version="22.2.47" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Log4Net.AspNetCore" Version="6.1.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Log4Net.AspNetCore" Version="8.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
   <ItemGroup>

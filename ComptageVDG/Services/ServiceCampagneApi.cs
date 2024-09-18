@@ -49,13 +49,15 @@ namespace ComptageVDG.Services
 
         public async Task<bool> asyncOpenParcelleCampagne(ParcelleModel parcelle, int Year)
         {
-            var list = new List<ParcelleModel>();
-            list.Add(parcelle);
-            string cmd = JsonSerialize.Serialize(list);
-            var retour = await connexionService.Instance.AsyncExecuteNoQuery($"CampagneVDG/Lavilog/SetParcellesCampagne?year={Year.ToString()}", new object[] { cmd });
-            if (retour == 1)
-                return true;
-            return false;
+            //var list = new List<ParcelleModel>();
+            //list.Add(parcelle);
+            string cmd = JsonSerialize.Serialize(parcelle);
+
+            if(parcelle.inCampagne)
+                return await ((DataAccessApi)connexionService.Instance).AsyncExecuteQueryPostofT<bool>($"CampagneVDG/Lavilog/InsertParcelleCampagne?year={Year.ToString()}", new object[] { cmd } );
+            else
+                return await ((DataAccessApi)connexionService.Instance).AsyncExecuteQueryPostofT<bool>($"CampagneVDG/Lavilog/DeleteParcelleCampagne?year={Year.ToString()}", new object[] { cmd });           
+
         }  
 
         public async Task<bool> asyncSetPeriodeCampagne(IEnumerable<PeriodeModel> periodeCampagne, string DateCampagne)
@@ -70,7 +72,7 @@ namespace ComptageVDG.Services
         {
             var dico = new Dictionary<string, string>();
             //connexionService.Instance.ExecuteQuery<KeyValuePair<int, string>>("CampagneVDG/Lavilog/GetCampagnes");
-            var Listkvp = ((DataAccessApi)connexionService.Instance).ExecuteQueryofT<Dictionary<int, string>>("CampagneVDG/Lavilog/GetCampagnes"); 
+            var Listkvp = ((DataAccessApi)connexionService.Instance).ExecuteQueryGetofT<Dictionary<int, string>>("CampagneVDG/Lavilog/GetCampagnes"); 
             if (Listkvp != null && Listkvp.Count() > 0)
             {
                 foreach (var item in Listkvp)
@@ -91,7 +93,7 @@ namespace ComptageVDG.Services
 
         public async Task<string> getTimeSynchroCampagne()
         {
-            return ((DataAccessApi)connexionService.Instance).ExecuteQueryofT<string>("CampagneVDG/Lavilog/GetLastSynchro");
+            return ((DataAccessApi)connexionService.Instance).ExecuteQueryGetofT<string>("CampagneVDG/Lavilog/GetLastSynchro");
         }
 
         public ObservableCollection<ParcelleModel> LoadYearCampagne(string DateCampagne)
@@ -104,16 +106,18 @@ namespace ComptageVDG.Services
 
         public async Task<bool> asyncSynchroInstagrappeCompteur(int Year)
         {
-            return await ((DataAccessApi)connexionService.Instance).AsyncExecuteQueryofT<bool>($"CampagneVDG/Instagrappe/SynchroCompteur", new object[] { $"year={Year.ToString()}" });
+            return await ((DataAccessApi)connexionService.Instance).AsyncExecuteQueryGetofT<bool>($"CampagneVDG/Instagrappe/SynchroCompteur", new object[] { $"year={Year.ToString()}" });
         }
 
         public async Task<bool> asyncSynchroInstagrappeDeclaration(int Year)
         {
-            return await ((DataAccessApi)connexionService.Instance).AsyncExecuteQueryofT<bool>($"CampagneVDG/Instagrappe/SynchroDeclaration", new object[] { $"year={Year.ToString()}" });
+            return await ((DataAccessApi)connexionService.Instance).AsyncExecuteQueryGetofT<bool>($"CampagneVDG/Instagrappe/SynchroDeclaration", new object[] { $"year={Year.ToString()}" });
         }
 
         public bool SetPeriodeCampagne(IEnumerable<PeriodeModel> periodeCampagne, string DateCampagne)
         {
+            
+
            int retour = connexionService.Instance.ExecuteNoQuery("CampagneVDG/Lavilog/SetPeriodes",new object[] { JsonSerialize.Serialize(periodeCampagne) });
 
             if(retour != periodeCampagne.Count())

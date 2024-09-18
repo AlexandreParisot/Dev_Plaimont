@@ -1,4 +1,5 @@
 ﻿using APIComptageVDG.Helpers;
+using APIComptageVDG.Helpers.Interfaces;
 using APIComptageVDG.Provider;
 using APIComptageVDG.Services;
 using Microsoft.AspNetCore.Hosting;
@@ -74,9 +75,16 @@ namespace APIComptageVDG.HostServices
                 });               
 
                 services.TryAddSingleton<IActionContextAccessor, ActionContextAccessor>();
-
-                
-
+                services.AddSingleton<IDataAccess, DataAccess>(provider =>
+                {
+                    var configuration = provider.GetRequiredService<IConfiguration>();
+                    var strconnexion = configuration.GetConnectionString("SqlConnexion");
+                    var dt = new DataAccess();
+                    dt.SetConnexion(strconnexion);
+                    return dt;
+                }
+                 );
+              
             }
             catch (Exception ex)
             {
@@ -145,13 +153,16 @@ namespace APIComptageVDG.HostServices
         {
            var  _config = configWs;
             //_service = service;
-            if (_service == null)
-                _service = new LavilogService();
-
+            
+            var dt = new DataAccess();
+           
             if (!string.IsNullOrEmpty(_config.GetConnectionString("SqlConnexion")))
-                _service.SetConnexion(_config.GetConnectionString("SqlConnexion")!);
+                dt.SetConnexion(_config.GetConnectionString("SqlConnexion")!);                
             else
                 return false;
+
+            if (_service == null)
+                _service = new LavilogService(dt);
 
             var url_token = _config["Instagrappe:URL_Token"];
             var url_api = _config["Instagrappe:URL_API"];
@@ -193,6 +204,7 @@ namespace APIComptageVDG.HostServices
                        Gestion.Obligatoire($"Config  url : {configWs["url"]}");
 
                        var app = webBuilder.UseContentRoot(Gestion.Current_Dir).UseKestrel().UseConfiguration(configWs).UseUrls(configWs["url"]);
+
                        app.UseIISIntegration().UseStartup<Startup>();
                    }
                    catch (Exception ex)

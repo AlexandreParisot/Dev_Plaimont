@@ -11,10 +11,11 @@ using System.ServiceProcess;
 using APIComptageVDG.Services;
 using System.Configuration;
 using static Org.BouncyCastle.Math.EC.ECCurve;
+using APIComptageVDG.Helpers.Interfaces;
 
 System.IO.Directory.SetCurrentDirectory(System.AppDomain.CurrentDomain.BaseDirectory);
 
-Gestion.Version = "1.0.0";
+Gestion.Version = "1.1.1";
 Gestion.NameApp = "APIComptageVDG";
 
 if (args.Length > 0 && args[0].ToLower().Contains("/install"))
@@ -98,6 +99,16 @@ else if (args.Length > 0 && args[0].ToLower().Contains("/console"))
             }
         });
     });
+
+    builder.Services.AddSingleton<IDataAccess, DataAccess>(provider =>
+    {
+        var configuration = provider.GetRequiredService<IConfiguration>();
+        var strconnexion = configuration.GetConnectionString("SqlConnexion");
+        var dt = new DataAccess();
+        dt.SetConnexion(strconnexion);
+        return dt;
+    }
+        );
 
     builder.WebHost.ConfigureLogging((hostingContext, logging) =>
     {

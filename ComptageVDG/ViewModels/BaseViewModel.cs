@@ -48,6 +48,13 @@ namespace ComptageVDG.ViewModels
         private static ObservableCollection<ParcelleModel> parcelleModelinCampagne;
         public ObservableCollection<ParcelleModel> ParcelleModelsinCampagne { get => parcelleModelinCampagne; set => SetProperty(ref parcelleModelinCampagne, value); }
 
+        private static ObservableCollection<ParcelleModel> parcelleModelsSelected;
+        public ObservableCollection<ParcelleModel> ParcelleModelsSelected
+        {
+            get => parcelleModelsSelected;
+            set => SetProperty(ref parcelleModelsSelected, value);
+        }
+
         protected static ConnexionService? Connexion = new ConnexionService();
 
         // mettre les services en static pour les rendre accessible des View models
@@ -77,12 +84,12 @@ namespace ComptageVDG.ViewModels
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
-        protected virtual void ShowLoading(string MessageLoading)
+        public virtual void ShowLoading(string MessageLoading)
         {
             MessageBrokerImpl.Instance?.Publish(this, MessageBrokerImpl.Notification("LOADING", MessageLoading));
         }
 
-        protected virtual void ClearLoading()
+        public virtual void ClearLoading()
         {
             MessageBrokerImpl.Instance?.Publish(this,MessageBrokerImpl.Notification("UNLOADING", string.Empty));
         }

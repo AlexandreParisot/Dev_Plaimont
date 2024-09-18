@@ -1,5 +1,6 @@
 ﻿using APIComptageVDG.ControllerModel;
 using APIComptageVDG.Helpers;
+using APIComptageVDG.Helpers.Interfaces;
 using APIComptageVDG.Models;
 using APIComptageVDG.Models.JsonModel;
 using APIComptageVDG.Provider;
@@ -22,15 +23,12 @@ namespace APIComptageVDG.Controllers
         private LavilogService _service;
 
         private IConfiguration _config;
-        public CampagneVDGController(IConfiguration config)
+        public CampagneVDGController(IConfiguration config, IDataAccess dataAccess)
         {
             _config = config;
             //_service = service;
             if (_service == null)
-                _service = new LavilogService();
-
-            if (!string.IsNullOrEmpty(_config.GetConnectionString("SqlConnexion")))            
-                _service.SetConnexion(_config.GetConnectionString("SqlConnexion")!);
+                _service = new LavilogService(dataAccess);            
             
 
             var url_token = _config["Instagrappe:URL_Token"];
@@ -426,17 +424,60 @@ namespace APIComptageVDG.Controllers
         [HttpPost("Lavilog/SetParcellesCampagne")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<List<int>>> SetParcellesCampagne(int year, IEnumerable<ParcelleModel> parcelles)
+        public ActionResult<List<int>> SetParcellesCampagne(int year, IEnumerable<ParcelleModel> parcelles)
         {
 
             if (!_service.IsConnected)
                 return BadRequest("Aucune Connexion au serveur de base");
 
-            var result = await _service.AsyncSetParcellesCampagne(parcelles, year);
+            var result =  _service.AsyncSetParcellesCampagne(parcelles, year);
             if(result!= null && result.Count == parcelles.Count())
                 return Ok(result);
+            else
+                return BadRequest(result);
+        }
 
-            return BadRequest(result);
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="year"></param>
+        /// <param name="parcelle"></param>
+        /// <returns></returns>
+        [HttpPost("Lavilog/DeleteParcelleCampagne")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<bool>> DeleteParcelleCampagne(int year, ParcelleModel parcelle)
+        {
+
+            if (!_service.IsConnected)
+                return BadRequest("Aucune Connexion au serveur de base");
+
+
+            if (await _service.AsyncDeleteParcelle(parcelle, year))
+                return Ok(true);
+            else
+                return BadRequest(false);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="year"></param>
+        /// <param name="parcelle"></param>
+        /// <returns></returns>
+        [HttpPost("Lavilog/InsertParcelleCampagne")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<bool>> InsertParcelleCampagne(int year, ParcelleModel parcelle)
+        {
+
+            if (!_service.IsConnected)
+                return BadRequest("Aucune Connexion au serveur de base");
+
+            if (await _service.AsyncInsertParcelle(parcelle, year))
+                return Ok(true);
+            else
+                return BadRequest(false);
         }
 
 

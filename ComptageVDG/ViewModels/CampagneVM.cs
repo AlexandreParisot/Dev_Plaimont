@@ -48,6 +48,14 @@ namespace ComptageVDG.ViewModels
             });
 
             MessageBrokerImpl.Instance.Subscribe<MessageEventArgs>(PayloadMessage);
+
+            if (ParcelleModelsinCampagne != null)
+            {
+                if (!string.IsNullOrEmpty(DateCampagne) && ParcelleModelsinCampagne.First().campagne.ToString() != DateCampagne)
+                    MessageBrokerImpl.Instance?.Publish(this, MessageBrokerImpl.Notification("REFRESH", DateCampagne));
+
+            }
+
         }
 
         private void PayloadMessage(MessagePayload<MessageEventArgs> obj)

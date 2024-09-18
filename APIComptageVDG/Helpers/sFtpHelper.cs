@@ -45,7 +45,7 @@ namespace APIComptageVDG.Helpers
         }
 
 
-        public static async Task<IEnumerable<SftpFile>> ListDirectory(string remotePath)
+        public static async Task<IEnumerable<ISftpFile>> ListDirectory(string remotePath)
         {
             if (Instance == null)
                 return null;
@@ -132,7 +132,7 @@ namespace APIComptageVDG.Helpers
             }
         }
 
-        public IEnumerable<SftpFile> ListDirectory(string remotePath)
+        public IEnumerable<ISftpFile> ListDirectory(string remotePath)
         {
             try
             {

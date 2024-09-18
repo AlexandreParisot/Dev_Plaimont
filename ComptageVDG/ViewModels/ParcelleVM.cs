@@ -43,6 +43,13 @@ namespace ComptageVDG.ViewModels
 
             ChangeStateCommand = new RelayCommand<ParcelleModel>(ChangeStateCommandExcute);
 
+            if(ParcelleModels != null)
+            {
+                if(!string.IsNullOrEmpty(DateCampagne) && ParcelleModels.First().campagne.ToString() != DateCampagne)
+                    MessageBrokerImpl.Instance?.Publish(this, MessageBrokerImpl.Notification("CHANGEDATE", DateCampagne));
+
+            }
+
             //OpenCampagneCommand = new RelayCommand(async() => {
             //    ShowLoading($"Synchronisation Instagrappe des parcelles pour la campagne {DateCampagne}");
             //    await ServiceCampagne.asyncOpenParcellesCampagne(ParcelleModels.ToList(), int.Parse(DateCampagne)).ContinueWith((x) => { ClearLoading();});
@@ -123,9 +130,11 @@ namespace ComptageVDG.ViewModels
 
         private async Task asyncLoadParcelles(string dateCp)
         {
+            ShowLoading($"Synchronisation Instagrappe des parcelles pour la campagne {DateCampagne}");
 
-            ParcelleModels = await ServiceCampagne.asyncLoadYearCampagne(dateCp);          
-            
+            ParcelleModels = await ServiceCampagne.asyncLoadYearCampagne(dateCp);
+
+            ClearLoading(); 
         }
     }
 }

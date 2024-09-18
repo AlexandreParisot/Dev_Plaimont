@@ -22,6 +22,7 @@ namespace ComptageVDG.Models
             } }
         public int id_parcelle { get; set; }
         public int id_propriete { get; set; }
+        public int campagne { get; set; }
         public string? prestataire { get; set; }
         public string? type_vendange { get; set; }
         public string? totalement_vendangee { get; set; }
@@ -37,6 +38,7 @@ namespace ComptageVDG.Models
         public decimal? superficie_vendangee { get; set; }
         public decimal? poids_vendanges { get; set; }
         public string? qualite { get; set; }
+        
         public int? cptGlomerule { get; set; }
         public int? cptPerforation1 { get; set; }
         public int? cptPerforation2 { get; set; }

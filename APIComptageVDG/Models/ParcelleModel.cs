@@ -5,6 +5,7 @@
         public bool inCampagne { get; set; }
         public int id_parcelle { get; set; }
         public int id_propriete { get; set; }
+        public int campagne { get; set; }
         public string? prestataire { get; set; }
         public string? type_vendange { get; set; }
         public string? totalement_vendangee { get; set; }

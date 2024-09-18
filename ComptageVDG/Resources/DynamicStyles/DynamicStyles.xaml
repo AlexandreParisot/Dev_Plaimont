@@ -117,31 +117,31 @@
                 Opacity="0.68" />
             <Grid x:Name="ItemLayout" Margin="5,0,5,0">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="auto"/>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="auto" />
+                    <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                    <Border 
-                        Grid.Column="0"
-                        x:Name="BkgElt2"
-                        Margin="3,4"
-                        Background="{Binding BgColor, FallbackValue='#CFE2FF', TargetNullValue='#CFE2FF'}"
-                        BorderBrush="{Binding FtColor, FallbackValue='#0842A5', TargetNullValue='#0842A5'}"
-                        BorderThickness="3"
-                        CornerRadius="0"
-                        Opacity="1" />
+                <Border
+                    x:Name="BkgElt2"
+                    Grid.Column="0"
+                    Margin="3,4"
+                    Background="{Binding BgColor, FallbackValue='#CFE2FF', TargetNullValue='#CFE2FF'}"
+                    BorderBrush="{Binding FtColor, FallbackValue='#0842A5', TargetNullValue='#0842A5'}"
+                    BorderThickness="3"
+                    CornerRadius="0"
+                    Opacity="1" />
 
-                    <TextBlock
-                        Grid.Column="1"
-                        x:Name="MessageTB"
-                        Margin="3"
-                        VerticalAlignment="Center"
-                        FontSize="16"
-                        FontWeight="DemiBold"
-                        HorizontalAlignment="Left"
-                        Foreground="Black"
-                        Text="{Binding Message}"
-                        TextWrapping="Wrap" />
-                
+                <TextBlock
+                    x:Name="MessageTB"
+                    Grid.Column="1"
+                    Margin="3"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Center"
+                    FontSize="16"
+                    FontWeight="DemiBold"
+                    Foreground="Black"
+                    Text="{Binding Message}"
+                    TextWrapping="Wrap" />
+
                 <!--  Foreground="{Binding FtColor, FallbackValue='#0842A5', TargetNullValue='#0842A5'}"  -->
             </Grid>
         </Grid>

@@ -87,19 +87,19 @@
                     </StackPanel>
                 </Button>
                 <Button
-                        x:Name="EXPORT"
-                        Margin="3"                        
-                        Click="EXPORT_Click">
+                    x:Name="EXPORT"
+                    Margin="3"
+                    Click="EXPORT_Click">
                     <StackPanel Margin="3" Orientation="Horizontal">
                         <Image
-                                Width="20"
-                                VerticalAlignment="Center"
-                                Source="/Views/Images/icons8-excel-64.png" />
+                            Width="20"
+                            VerticalAlignment="Center"
+                            Source="/Views/Images/icons8-excel-64.png" />
                         <TextBlock
-                                Margin="3"
-                                VerticalAlignment="Center"
-                                Text="Export Excel"
-                                TextAlignment="Center" />
+                            Margin="3"
+                            VerticalAlignment="Center"
+                            Text="Export Excel"
+                            TextAlignment="Center" />
                     </StackPanel>
                 </Button>
                 <Button
@@ -135,7 +135,17 @@
                 Name="xamDataGridParcelle"
                 AutoFit="True"
                 DataSource="{Binding ParcelleModels}"
-                DataValueChangedDirect="xamDataGridParcelle_DataValueChangedDirect">
+                DataValueChangedDirect="xamDataGridParcelle_DataValueChangedDirect"
+                SelectedDataItem="{Binding ParcelleModelsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource DebugConverter}}">
+                <igDP:XamDataGrid.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Click="MenuItem_Click" Header="Changer l'état des parcelles séléctionnées">
+                            <MenuItem.Icon>
+                                <Image Source="{Binding Source='/Views/Images/icons8-grapes-64.png'}" />
+                            </MenuItem.Icon>
+                        </MenuItem>
+                    </ContextMenu>
+                </igDP:XamDataGrid.ContextMenu>
 
                 <igDP:XamDataGrid.Resources>
                     <Style TargetType="{x:Type igEditors:XamNumericEditor}">

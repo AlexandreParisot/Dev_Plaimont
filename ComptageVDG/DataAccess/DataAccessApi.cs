@@ -98,9 +98,14 @@ namespace ComptageVDG.DataAccess
             return await Task.Run(() => ExecuteQuery<T>(query, paramsArray));
         }
 
-        public async Task<T> AsyncExecuteQueryofT<T>(string query, object[]? paramsArray = null)
+        public async Task<T> AsyncExecuteQueryGetofT<T>(string query, object[]? paramsArray = null)
         {
-            return await Task.Run(() => ExecuteQueryofT<T>(query, paramsArray));
+            return await Task.Run(() => ExecuteQueryGetofT<T>(query, paramsArray));
+        }
+
+        public async Task<T> AsyncExecuteQueryPostofT<T>(string query, object[]? paramsArray = null)
+        {
+            return await Task.Run(() => ExecuteQueryPostofT<T>(query, paramsArray));
         }
 
 
@@ -201,7 +206,7 @@ namespace ComptageVDG.DataAccess
         }
 
 
-       public T ExecuteQueryofT<T>(string query, object[]? paramsArray = null)
+       public T ExecuteQueryGetofT<T>(string query, object[]? paramsArray = null)
        {
             try
             {
@@ -243,6 +248,50 @@ namespace ComptageVDG.DataAccess
                 return default(T);
             }
         }
+
+        public T ExecuteQueryPostofT<T>(string query, object[]? paramsArray = null)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(query))
+                    throw new ArgumentNullException(nameof(query));
+
+
+                var cCommandeGet = string.Empty;
+                var _httpMethod = HttpMethod.Post;
+
+                if (paramsArray != null && paramsArray!.Any())
+                {
+                    var strCommand = paramsArray!.OfType<String>().FirstOrDefault();
+                    if (!string.IsNullOrEmpty(strCommand))
+                        cCommandeGet = strCommand;
+                    var httpmethod = paramsArray!.OfType<HttpMethod>().FirstOrDefault();
+                    if (httpmethod != null)
+                        _httpMethod = httpmethod;
+                }
+
+
+                var result = CallApi(query, _httpMethod, cCommandeGet);
+                if (result != null && result.IsSuccessStatusCode)
+                {
+                    var str = result.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                    if (!string.IsNullOrEmpty(str))
+                    {
+                        var res = JsonSerialize.Deserialize<T>(str);
+                        return res;
+                    }
+                }
+
+                return default(T);
+
+            }
+            catch (Exception ex)
+            {
+                Gestion.Erreur(ex.Message);
+                return default(T);
+            }
+        }
+
 
         public IEnumerable<T> ExecuteQuery<T>(string query, object[]? paramsArray = null)
         {

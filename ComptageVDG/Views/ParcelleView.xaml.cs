@@ -77,5 +77,66 @@ namespace ComptageVDG.Views
                 }
             }
         }
+
+        private void MenuItem_Click(object sender, RoutedEventArgs e)
+        {
+           if (xamDataGridParcelle.SelectedItems.ToList().Count() > 0){
+
+                var Vm = ((ParcelleVM)DataContext);  
+                
+                foreach (var selectedItem in xamDataGridParcelle.SelectedItems)
+                {
+                    //var dataRecord = selectedItem as Infragistics.Windows.DataPresenter.DataRecord;
+                    //if (dataRecord != null)
+                    //{
+                    //    var parcelleItem = dataRecord.DataItem as ParcelleModel;
+                    //    if (parcelleItem != null)
+                    //    {
+                    //        // Logique pour inverser la valeur de inCampagne
+                    //        if (parcelleItem.inCampagne)
+                    //            parcelleItem.inCampagne = false;
+                    //        else
+                    //            parcelleItem.inCampagne = true;
+                    //    }
+                    //}
+                    var dataRecord = selectedItem as Infragistics.Windows.DataPresenter.DataRecord;
+                    if (dataRecord != null)
+                    {
+                        // Cast du DataItem vers ton modèle de données
+                        var parcelleItem = dataRecord.DataItem as ParcelleModel;
+                        if (parcelleItem != null)
+                        {
+                            // Logique pour inverser la valeur de inCampagne
+                            if (parcelleItem.inCampagne)
+                                parcelleItem.inCampagne = false;
+                            else
+                                parcelleItem.inCampagne = true;
+                        }
+                    }
+                    else
+                    {
+                        // Gérer le cas où l'élément sélectionné n'est pas un DataRecord (peut-être une cellule ?)
+                        var dataCell = selectedItem as Infragistics.Windows.DataPresenter.Cell;
+                        if (dataCell != null)
+                        {
+                            var parcelleItem = dataCell.Record.DataItem as ParcelleModel;
+                            if (parcelleItem != null)
+                            {
+                                if (parcelleItem.inCampagne)
+                                    parcelleItem.inCampagne = false;
+                                else
+                                    parcelleItem.inCampagne = true;
+                            }
+                        }
+                    }
+
+
+
+                }
+               
+
+
+            }
+        }
     }
 }

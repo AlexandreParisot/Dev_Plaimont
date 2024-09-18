@@ -17,63 +17,60 @@ using System.Xml.Linq;
 using MySqlX.XDevAPI.Common;
 using APIComptageVDG.Models.JsonModel;
 using Org.BouncyCastle.Utilities.Collections;
+using APIComptageVDG.Helpers.Interfaces;
+using System.Diagnostics.Eventing.Reader;
 
 namespace APIComptageVDG.Services
 {
     public class LavilogService
     {
 
-        //Data Source=PLSERVER03\\SQLLAVILOG;Initial Catalog=LAVILOG_TEST_M3;User=lavilog;Password=***Keepass***; MultipleActiveResultSets = True
-        private IDbConnection connection = new SqlConnection();
-        
-        public bool IsConnected { get {
-                try
-                {
-                    connection.Open();
-                    if (connection.State == ConnectionState.Open || connection.State == ConnectionState.Connecting)
-                        return true;
-                    else return false;
-                }
-                catch(Exception ex)
-                {
-                    Gestion.Erreur(ex.Message);
-                    return false;
-                }
-                finally
-                {
-                    connection.Close(); 
-                }
-                
-            } }   
+        private readonly IDataAccess dataAccess;
 
-        public void SetConnexion(string connexionString)
+        public LavilogService(IDataAccess dataAccess)
         {
-            if (string.IsNullOrEmpty(connexionString))
-                throw new ArgumentNullException("La chaine de connexion est null.");
-
-            if (connection == null)
-                throw new ArgumentNullException("La connexion est null.");
-
-            if(connection.State != ConnectionState.Open)
-                connection.ConnectionString = connexionString;
+            this.dataAccess = dataAccess;   
         }
 
 
-        public void SetConnexion(IDbConnection connexion)
-        {
-            if (connection == null)
-                throw new ArgumentNullException("L'objet connexion est null.");
 
-            this.connection = connexion;
+        public bool IsConnected
+        {
+            get
+            {
+                return dataAccess.IsConnected;
+
+            }
         }
+
+        //public void SetConnexion(string connexionString)
+        //{
+        //    if (string.IsNullOrEmpty(connexionString))
+        //        throw new ArgumentNullException("La chaine de connexion est null.");
+
+        //    if (connection == null)
+        //        throw new ArgumentNullException("La connexion est null.");
+
+        //    if(connection.State != ConnectionState.Open)
+        //        connection.ConnectionString = connexionString;
+        //}
+
+
+        //public void SetConnexion(IDbConnection connexion)
+        //{
+        //    if (connection == null)
+        //        throw new ArgumentNullException("L'objet connexion est null.");
+
+        //    this.connection = connexion;
+        //}
 
         public async Task<Dictionary<int,string>> AsyncGetCampagnes()
         {
-            if (connection == null)
+            if (dataAccess == null)
                 throw new ArgumentNullException("La connexion est null.");
 
             var campagnes = new Dictionary<int,string>();
-            var result = await connection.QueryAsync($"select distinct Codlib1 from dbo.sPortailParametre where Prefixe = 'CVDG' and Codlib1 <> ''  and Codlib2 <> ''  order by Codlib1 desc ");
+            var result = await dataAccess.DbConnect.QueryAsync($"select distinct Codlib1 from dbo.sPortailParametre where Prefixe = 'CVDG' and Codlib1 <> ''  and Codlib2 <> ''  order by Codlib1 desc ");
 
             foreach(var campagn in result)
             {
@@ -92,11 +89,11 @@ namespace APIComptageVDG.Services
 
         public async Task<string> AsyncGetLastSynchro()
         {
-            if (connection == null)
+            if (dataAccess == null)
                 throw new ArgumentNullException("La connexion est null.");
 
             var strSynchro = string.Empty;
-            var result = await connection.QueryAsync($"select Valeur from dbo.sPortailParametre where Prefixe = 'CVDG' and Codlib1 ='last synchro' ");
+            var result = await dataAccess.DbConnect.QueryAsync($"select Valeur from dbo.sPortailParametre where Prefixe = 'CVDG' and Codlib1 ='last synchro' ");
 
             foreach (var synchro in result)
             {
@@ -115,11 +112,11 @@ namespace APIComptageVDG.Services
 
         public async Task<bool> AsyncSetLastSynchro()
         {
-            if (connection == null)
+            if (dataAccess == null)
                 throw new ArgumentNullException("La connexion est null.");
 
             var strSynchro = string.Empty;
-            var query = await connection.QueryAsync($"select 1 Trouve from dbo.sPortailParametre where Prefixe = 'CVDG' and Codlib2 is null  and Codlib1 ='last synchro'");
+            var query = await dataAccess.DbConnect.QueryAsync($"select top 1  1 Trouve from dbo.sPortailParametre where Prefixe = 'CVDG' and Codlib1 ='last synchro'");
             var trouve = false;
             var result = true;
             var req = string.Empty;
@@ -141,7 +138,7 @@ namespace APIComptageVDG.Services
             if (trouve)
             {
                 req = $" Update dbo.sPortailParametre set Valeur = '{DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss")}' ";
-                req += $"  where Prefixe = 'CVDG' and Codlib2 is null  and Codlib1 ='last synchro'";
+                req += $"  where Prefixe = 'CVDG' and Codlib1 ='last synchro'";
             }
             else
             {
@@ -149,7 +146,7 @@ namespace APIComptageVDG.Services
                 req += $" ('CVDG','last synchro','', '{DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss")}')";
             }
 
-            if (!string.IsNullOrEmpty(req) && await connection.ExecuteAsync(req) == 0)
+            if (!string.IsNullOrEmpty(req) && await dataAccess.DbConnect.ExecuteAsync(req) == 0)
             {
                 Gestion.Erreur($"Err Insert last synchro");
                 result = false;
@@ -161,12 +158,12 @@ namespace APIComptageVDG.Services
 
         public async Task<IEnumerable<PeriodeModel>> AsyncGetPeriode(string year)
         {
-            if (connection == null)
+            if (dataAccess == null)
                 throw new ArgumentNullException("La connexion est null.");
 
             var periodes = new List<PeriodeModel>();    
 
-            var portailParametres =  await connection.QueryAsync<SPortailParametre>($"select * from dbo.sPortailParametre where Prefixe = 'CVDG' and Codlib1 = '{year}' ");
+            var portailParametres =  await dataAccess.DbConnect.QueryAsync<SPortailParametre>($"select * from dbo.sPortailParametre where Prefixe = 'CVDG' and Codlib1 = '{year}' ");
 
             if (portailParametres.Any())
             {
@@ -198,7 +195,7 @@ namespace APIComptageVDG.Services
 
         public async Task<List<long>> AsyncSetPeriodes(IEnumerable<PeriodeModel> Periodes)
         {
-            if (connection == null)
+            if (dataAccess == null)
                 throw new ArgumentNullException("La connexion est null.");
 
             List<long> result = new List<long>();
@@ -245,12 +242,12 @@ namespace APIComptageVDG.Services
                     {
                         if (insert)
                         {
-                            sPortailParametres.ForEach(x => result.Add( connection.Insert<SPortailParametre>(x)));
+                            sPortailParametres.ForEach(x => result.Add( dataAccess.DbConnect.Insert<SPortailParametre>(x)));
                             Gestion.Info($"Creation de la campagne {sPortailParametres[0].Codlib1} - Id : {string.Join(",",result)}");
                         }
                         else
                         {
-                            sPortailParametres.ForEach(x => result.Add((connection.Update(x) ? x.ID_sPortailParametre : 0)));
+                            sPortailParametres.ForEach(x => result.Add((dataAccess.DbConnect.Update(x) ? x.ID_sPortailParametre : 0)));
                             Gestion.Info($"Mise à jours de la campagne {sPortailParametres[0].Codlib1} - Id : {string.Join(",", result)}");
                         }
                     }
@@ -269,10 +266,12 @@ namespace APIComptageVDG.Services
                 var result = new List<ParcelleModel>();
 
                 var req = $@" 
+                      
                      select  UT.ID_vUniteTravail as id_parcelle 
                    , UT.UniteTravail_Code ut 
                    , UT.UniteTravail_Libelle  nameParcelle                                                                                                                                  
-                   , UT.UniteTravail_Libelle2 nameParcelle2                                                                                                                                 
+                   , UT.UniteTravail_Libelle2 nameParcelle2
+                   , {year} campagne
                    , P.Propriete_Libelle  propriete                                                                                                                                                  
                    , P.ID_vPropriete    id_propriete                                                                                                                                                      
                    , NOTE.[Note : Appellation de travail] appellation                                                                                                                        
@@ -290,18 +289,25 @@ namespace APIComptageVDG.Services
 						WHEN '{year}' THEN 'true'
 						ELSE 'false'
 					end inCampagne
-				 , (select  [Comptage] from dbo.vObservation ob
+				 , (select top 1 [Comptage] from dbo.vObservation ob
 						inner join  dbo.vActionUniteTravail utVa on utVa.ID_vAction = ob.ID_vAction and utVa.ID_vUniteTravail = ut.ID_vUniteTravail
                         inner join dbo.vAction vA on vA.ID_vAction = ob.ID_vAction and YEAR(va.Action_Date) = {year}
-						where ob.ID_vObservationProgramme = ( select [ID_vObservationProgramme] from dbo.vObservationProgramme where Programme_Code = 'CVDG-G' )) cptGlomerule
-				  , (select  [Comptage] from dbo.vObservation ob
+						where ob.ID_vObservationProgramme = ( select [ID_vObservationProgramme] from dbo.vObservationProgramme where Programme_Code = 'CVDG-G' )
+						group by Comptage,va.Action_Date
+						order by va.Action_Date desc
+						) cptGlomerule
+				  , (select top 1 [Comptage] from dbo.vObservation ob
 						inner join  dbo.vActionUniteTravail utVa on utVa.ID_vAction = ob.ID_vAction and utVa.ID_vUniteTravail = ut.ID_vUniteTravail
                         inner join dbo.vAction vA on vA.ID_vAction = ob.ID_vAction and YEAR(va.Action_Date) = {year}
-						where ob.ID_vObservationProgramme = ( select [ID_vObservationProgramme] from dbo.vObservationProgramme where Programme_Code = 'CVDG-P1' )) cptPerforation1 
-				  , (select  [Comptage] from dbo.vObservation ob
+						where ob.ID_vObservationProgramme = ( select [ID_vObservationProgramme] from dbo.vObservationProgramme where Programme_Code = 'CVDG-P1' )
+						group by Comptage,va.Action_Date
+						order by va.Action_Date desc) cptPerforation1 
+				  , (select top 1 [Comptage] from dbo.vObservation ob
 						inner join  dbo.vActionUniteTravail utVa on utVa.ID_vAction = ob.ID_vAction and utVa.ID_vUniteTravail = ut.ID_vUniteTravail
                         inner join dbo.vAction vA on vA.ID_vAction = ob.ID_vAction and YEAR(va.Action_Date) = {year}
-						where ob.ID_vObservationProgramme = ( select [ID_vObservationProgramme] from dbo.vObservationProgramme where Programme_Code = 'CVDG-P2' )) cptPerforation2
+						where ob.ID_vObservationProgramme = ( select [ID_vObservationProgramme] from dbo.vObservationProgramme where Programme_Code = 'CVDG-P2' )
+						group by Comptage,va.Action_Date
+						order by va.Action_Date desc) cptPerforation2
     from dbo.vUniteTravail UT                                                                                                                                                               
                    inner join dbo.vPropriete P on P.ID_vPropriete = UT.ID_vPropriete                                                                                                        
                    inner join dbo.pTmpTravailCompoColonne TMP on TMP.ID_vUniteTravail = UT.ID_vUniteTravail                                                                                 
@@ -309,7 +315,7 @@ namespace APIComptageVDG.Services
                    left  join dbo.vRecolte R on R.ID_vUniteTravail = UT.ID_vUniteTravail and year(R.Recolte_Date) = year(getdate()) 
 				   inner join dbo.tNote tN on  tN.ID_Target = UT.ID_vUniteTravail and tN.Note_Categorie = 'CVDG' and tN.Note_Valeur = '{year}'
     where(UT.UniteTravail_Archive = 0 OR UT.UniteTravail_Archive IS NULL)                                                                                                                   
-        --AND TMP.Travail_Superficie > 0                                                                                                                                                    
+        AND TMP.Travail_Superficie > 0                                                                                                                                                    
         and P.Portail = 1                                                                                                                                                                   
         and(select count(*) from dbo.vInterlocuteur INT where INT.ID_vPropriete = P.ID_vPropriete and isnull(INT.Interloc_Email, '') not like '') > 0                                       
                                                                                                                                                          
@@ -361,9 +367,8 @@ namespace APIComptageVDG.Services
 				   , NOTE.[Note : Site de vendange]";
 
 
-                result = connection.Query<ParcelleModel>(req).ToList();
+               return await dataAccess.DbConnect.QueryAsync<ParcelleModel>(req);
 
-                return result;
             }
             catch (Exception e)
             {
@@ -383,7 +388,8 @@ namespace APIComptageVDG.Services
                      select  UT.ID_vUniteTravail as id_parcelle 
                    , UT.UniteTravail_Code ut 
                    , UT.UniteTravail_Libelle  nameParcelle                                                                                                                                  
-                   , UT.UniteTravail_Libelle2 nameParcelle2                                                                                                                                 
+                   , UT.UniteTravail_Libelle2 nameParcelle2    
+                   , {year} campagne
                    , P.Propriete_Libelle  propriete                                                                                                                                                  
                    , P.ID_vPropriete    id_propriete                                                                                                                                                      
                    , NOTE.[Note : Appellation de travail] appellation                                                                                                                        
@@ -465,7 +471,7 @@ namespace APIComptageVDG.Services
 
 
 
-                result = connection.Query<ParcelleModel>(req).ToList();
+                result = dataAccess.DbConnect.Query<ParcelleModel>(req).ToList();
                                 
                 return result;
             }
@@ -478,7 +484,7 @@ namespace APIComptageVDG.Services
         }
 
 
-        public async Task<List<int>> AsyncSetParcellesCampagne(IEnumerable<ParcelleModel> Parcelles,  int year)
+        public  List<int> AsyncSetParcellesCampagne(IEnumerable<ParcelleModel> Parcelles,  int year)
         {
 
             List<int> result = new List<int>();
@@ -487,7 +493,7 @@ namespace APIComptageVDG.Services
                 foreach (ParcelleModel parcelleModel in Parcelles)
                 {
                     //control si deja dans les notes
-                    var reader = await connection.ExecuteReaderAsync($"select 1 from dbo.tNote where Note_Categorie = 'CVDG' and Note_Valeur = '{year}' and Note_Fichier = 'vUniteTravail' and ID_Target = {parcelleModel.id_parcelle}");
+                    var reader =  dataAccess.DbConnect.ExecuteReader($"select 1 from dbo.tNote where Note_Categorie = 'CVDG' and Note_Valeur = '{year}' and Note_Fichier = 'vUniteTravail' and ID_Target = {parcelleModel.id_parcelle}");
                     bool trouve = false;
                     while (reader.Read())
                     {
@@ -497,16 +503,17 @@ namespace APIComptageVDG.Services
                     //si il faut le sotir delete 
                     if (!parcelleModel.inCampagne && trouve)
                     {
-                        if (await connection.ExecuteAsync($"Delete from dbo.tNote where Note_Categorie = 'CVDG' and Note_Valeur = '{year}' and Note_Fichier = 'vUniteTravail' and ID_Target = {parcelleModel.id_parcelle}") == 0)
+                        if ( dataAccess.DbConnect.Execute($"Delete from dbo.tNote where Note_Categorie = 'CVDG' and Note_Valeur = '{year}' and Note_Fichier = 'vUniteTravail' and ID_Target = {parcelleModel.id_parcelle}") == 0)
                         {
                             Gestion.Erreur($"Err Delete campagne {year} - Parcelle {parcelleModel.id_parcelle} - {parcelleModel.nameParcelle} ");
                         }
                         else
                         {
-                           await asyncDeleteObservationCpt(parcelleModel.id_parcelle.ToString(), year.ToString(), "CVDG-G");
-                           await asyncDeleteObservationCpt(parcelleModel.id_parcelle.ToString(), year.ToString(), "CVDG-P1");
-                           await asyncDeleteObservationCpt(parcelleModel.id_parcelle.ToString(), year.ToString(), "CVDG-P2");
                             result.Add(parcelleModel.id_parcelle);
+                            asyncDeleteObservationCpt(parcelleModel.id_parcelle.ToString(), year.ToString(), "CVDG-G").GetAwaiter();
+                            asyncDeleteObservationCpt(parcelleModel.id_parcelle.ToString(), year.ToString(), "CVDG-P1").GetAwaiter();
+                            asyncDeleteObservationCpt(parcelleModel.id_parcelle.ToString(), year.ToString(), "CVDG-P2").GetAwaiter();
+                          
                         }
                             
                     }
@@ -516,7 +523,7 @@ namespace APIComptageVDG.Services
                         var req = $" Insert INTO dbo.tNote ( ID_Target, Note_Valeur, Note_Categorie, Note_Fichier, Note_Date , Note_Type) VALUES";
                         req += $" ({parcelleModel.id_parcelle}, '{year}', 'CVDG','vUniteTravail', GETDATE(), 0)";
 
-                       if(await connection.ExecuteAsync(req) == 0)
+                       if( dataAccess.DbConnect.Execute(req) == 0)
                         {
                             Gestion.Erreur($"Err Insert campagne {year} - Parcelle {parcelleModel.id_parcelle} - {parcelleModel.nameParcelle} ");
                         }
@@ -530,6 +537,70 @@ namespace APIComptageVDG.Services
                 Gestion.Erreur($"Err  Campagne {year} -  {ex.Message}");
                 return new List<int>();
             }
+        }
+
+
+        public async Task<bool> AsyncDeleteParcelle(ParcelleModel parcelle, int year)
+        {
+
+            var reader = dataAccess.DbConnect.ExecuteReader($"select 1 from dbo.tNote where Note_Categorie = 'CVDG' and Note_Valeur = '{year}' and Note_Fichier = 'vUniteTravail' and ID_Target = {parcelle.id_parcelle}");
+            bool trouve = false;
+            while (reader.Read())
+            {
+                if (reader.GetInt32(0) == 1)
+                    trouve = true;
+            }
+
+            if (trouve)
+            {
+                //control si deja dans les notes
+                if (dataAccess.DbConnect.Execute($"Delete from dbo.tNote where Note_Categorie = 'CVDG' and Note_Valeur = '{year}' and Note_Fichier = 'vUniteTravail' and ID_Target = {parcelle.id_parcelle}") == 0)
+                {
+                    Gestion.Erreur($"Err Delete campagne {year} - Parcelle {parcelle.id_parcelle} - {parcelle.nameParcelle} ");
+                    return false;
+                }
+                else
+                {
+
+                    await asyncDeleteObservationCpt(parcelle.id_parcelle.ToString(), year.ToString(), "CVDG-G");
+                    await asyncDeleteObservationCpt(parcelle.id_parcelle.ToString(), year.ToString(), "CVDG-P1");
+                    await asyncDeleteObservationCpt(parcelle.id_parcelle.ToString(), year.ToString(), "CVDG-P2");
+                    return true;
+                }
+            }else
+                return true;
+              
+        }
+
+
+        public async Task<bool> AsyncInsertParcelle(ParcelleModel parcelle, int year)
+        {
+
+            var reader = dataAccess.DbConnect.ExecuteReader($"select 1 from dbo.tNote where Note_Categorie = 'CVDG' and Note_Valeur = '{year}' and Note_Fichier = 'vUniteTravail' and ID_Target = {parcelle.id_parcelle}");
+            bool trouve = false;
+            while (reader.Read())
+            {
+                if (reader.GetInt32(0) == 1)
+                    trouve = true;
+            }
+
+            if (!trouve)
+            {
+                var req = $" Insert INTO dbo.tNote ( ID_Target, Note_Valeur, Note_Categorie, Note_Fichier, Note_Date , Note_Type) VALUES";
+                req += $" ({parcelle.id_parcelle}, '{year}', 'CVDG','vUniteTravail', GETDATE(), 0)";
+
+                if (await dataAccess.DbConnect.ExecuteAsync(req) == 0)
+                {
+                    Gestion.Erreur($"Err Insert campagne {year} - Parcelle {parcelle.id_parcelle} - {parcelle.nameParcelle} ");
+                    return false;
+                }
+                else
+                    return true;
+            }
+            else
+                return true;
+
+            
         }
 
         public async Task<bool> AsyncSetCptParcellesCampagne(Engagements engagements)
@@ -580,7 +651,7 @@ namespace APIComptageVDG.Services
         {
 
             var VActionMeta = new VActionMeta() { Meta_DateDebut= DateTime.Now, Meta_DateFin= DateTime.Now,Meta_Type=0};
-            var id_actionMeta = await  connection.InsertAsync(VActionMeta);
+            var id_actionMeta = await dataAccess.DbConnect.InsertAsync(VActionMeta);
             if (id_actionMeta == 0)
             {
                 Gestion.Erreur($"Erreur Lors de la creation de VActionMeta: UT:{ut} - TypeCompteur  {typeCpt} - valeur : {valueCpt}");
@@ -588,7 +659,7 @@ namespace APIComptageVDG.Services
             }
 
             var VAction = new VAction() { Action_Date = DateTime.Now, ID_vActionMeta = id_actionMeta, Action_Type = 0, Action_Previsionnel = 0 };
-            var id_action = await connection.InsertAsync(VAction);
+            var id_action = await dataAccess.DbConnect.InsertAsync(VAction);
             if (id_action == 0)
             {
                 Gestion.Erreur($"Erreur Lors de la creation de VAction: UT:{ut} - TypeCompteur  {typeCpt} - valeur : {valueCpt}");
@@ -612,7 +683,7 @@ namespace APIComptageVDG.Services
                                 , 0
                             )";
 
-            var result = await connection.ExecuteAsync(sql);
+            var result = await dataAccess.DbConnect.ExecuteAsync(sql);
             if(result == 0)
             {
                 Gestion.Erreur($"Erreur Lors de la creation de vActionUniteTravail : UT:{ut} - TypeCompteur  {typeCpt} - valeur : {valueCpt} / req : {sql}");
@@ -633,7 +704,7 @@ namespace APIComptageVDG.Services
                                     , (select [ID_vObservationProgramme] from dbo.vObservationProgramme where Programme_Code = '{typeCpt}')
                                     , {valueCpt}
                         )";
-            result = await connection.ExecuteAsync(sql);
+            result = await dataAccess.DbConnect.ExecuteAsync(sql);
             if (result == 0)
             {
                 Gestion.Erreur($"Erreur Lors de la creation de vObservation : UT:{ut} - TypeCompteur  {typeCpt} - valeur : {valueCpt} / req : {sql}");
@@ -654,7 +725,7 @@ namespace APIComptageVDG.Services
 						where ob.ID_vObservationProgramme = ( select [ID_vObservationProgramme] from dbo.vObservationProgramme where Programme_Code = '{typeCpt}' )";
             try
             {
-                var result = await connection.QueryAsync(req);
+                var result = await dataAccess.DbConnect.QueryAsync(req);
 
                 if (result.Count() == 0)
                     return true;
@@ -662,17 +733,17 @@ namespace APIComptageVDG.Services
                 foreach (var vactionMeta in result)
                 {
                     req = $"DELETE FROM vActionUniteTravail WHERE ID_vAction = {vactionMeta.ID_vAction}";
-                    if (await connection.ExecuteAsync(req) != 1)
+                    if (await dataAccess.DbConnect.ExecuteAsync(req) != 1)
                         return false;
                     req = $"DELETE FROM vObservation WHERE ID_vAction = {vactionMeta.ID_vAction}";
-                    if (await connection.ExecuteAsync(req) != 1)
+                    if (await dataAccess.DbConnect.ExecuteAsync(req) != 1)
                         return false;
 
                     req = $"DELETE FROM vAction WHERE ID_vActionMeta = {vactionMeta.ID_vActionMeta}";
-                    if (await connection.ExecuteAsync(req) != 1)
+                    if (await dataAccess.DbConnect.ExecuteAsync(req) != 1)
                         return false;
                     req = $"DELETE FROM vActionMeta WHERE ID_vActionMeta = {vactionMeta.ID_vActionMeta}";
-                    if (await connection.ExecuteAsync(req) != 1)
+                    if (await dataAccess.DbConnect.ExecuteAsync(req) != 1)
                         return false;
                 }
 
